@@ -1,0 +1,508 @@
+
+Resources:
+
+    * CPU
+    * memory
+    * storage
+    * network
+
+https://docs.asciidoctor.org/
+https://github.com/asciidoctor/asciidoctor
+https://asciidocfx.com/
+https://shields.io/
+https://fontawesome.com/
+https://en.wikipedia.org/wiki/Web_colors#HTML_color_names
+
+== Architectural PMCs
+https://www.brendangregg.com/blog/2017-05-04/the-pmcs-of-ec2.html
+https://perfmon-events.intel.com/
+https://hadibrais.wordpress.com/2019/09/06/the-linux-perf-event-scheduling-algorithm/
+
+* CPU_CLK_UNHALTED.THREAD_P
+** Number of core cycles while the logical processor is not in a halt state.
+* INST_RETIRED.ANY_P
+** Instructions retired (Programmable counter and Precise Event)
+* CPU_CLK_THREAD_UNHALTED.REF_XCLK
+** Increments at the frequency of XCLK (100 MHz) when not halted.
+* LONGEST_LAT_CACHE.REFERENCE
+** This event counts requests originating from the core that reference a cache line in the last level cache.
+* LONGEST_LAT_CACHE.MISS
+** This event counts each cache miss condition for references to the last level cache.
+* BR_INST_RETIRED.ALL_BRANCHES
+** All (macro) branch instructions retired.
+* BR_MISP_RETIRED.ALL_BRANCHES
+** Mispredicted macro branch instructions retired.
+
+It is possible to inspect how perf tool sets its perf_event_attr structure by
+running the perf command with the -vv flag e.g.
+perf stat -vv -a -e instructions -- date
+
+== perf_event_open - how to monitor multiple events
+https://stackoverflow.com/questions/42088515/perf-event-open-how-to-monitoring-multiple-events
+
+== Perf Events
+https://web.eece.maine.edu/~vweaver/projects/perf_events/index.html
+man perf_event_open
+https://github.com/torvalds/linux/blob/master/tools/perf/design.txt
+
+==
+https://stackoverflow.com/questions/23965363/linux-perf-events-cpu-clock-and-task-clock-what-is-the-difference
+https://github.com/torvalds/linux/blob/master/kernel/events/core.c
+"Software event: cpu wall time clock"
+"Software event: task time clock"
+
+== NMI hardlock watchdog
+https://www.kernel.org/doc/html/latest/admin-guide/lockup-watchdogs.html
+cat /proc/sys/kernel/nmi_watchdog
+
+== Microsoft try finally
+https://docs.microsoft.com/en-us/cpp/cpp/try-finally-statement
+https://docs.microsoft.com/en-us/cpp/cpp/try-except-statement
+
+== GCC cleanup function
+https://gcc.gnu.org/onlinedocs/gcc-11.2.0/gcc/Common-Variable-Attributes.html#Common-Variable-Attributes
+
+== USE method
+* usability
+* saturation
+* errors
+
+== What is our goal when running the program?
+* off
+    ** fully disabled
+* debug
+    ** isolating a known defect
+    ** trace through code
+    ** dump key data
+    ** assertions enabled
+* test
+    ** run automated unit tests
+* qa
+    ** confirming correct operation
+    ** logging fatal errors and exceptions
+    ** log errors and warnings
+* profile
+    ** identifying performance bottlenecks
+    ** profile resource usage
+* release
+    ** monitoring a system in production
+    ** monitor system health
+    ** logging fatal errors and exceptions
+
+== API
+
+bg_program
+bg_function
+bg_line
+
+bg_assert() - debug time
+bg_verify() - release time
+
+bg_bytes()
+
+== time to string
+https://stackoverflow.com/questions/48217017/what-is-the-prettiest-way-to-convert-time-point-to-string
+https://en.cppreference.com/w/cpp/utility/to_chars
+https://en.cppreference.com/w/cpp/utility/format
+https://www.zverovich.net/2020/06/13/fast-int-to-string-revisited.html
+https://github.com/fmtlib/fmt
+
+== Types of data
+https://builtin.com/data-science/data-types-statistics
+https://www.questionpro.com/blog/ratio-scale-vs-interval-scale/
+https://www.questionpro.com/blog/nominal-ordinal-interval-ratio/
+
+    * category (could be ordered "01 - elementary school")
+    * interval (temp, time, can be negative)
+    * ratio (height, weight, can never be less than zero)
+
+== CMake
+https://gitlab.com/CLIUtils/modern-cmake/tree/master/examples/extended-project
+https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Write-Platform-Checks
+
+== GitHub
+https://www.webfx.com/tools/emoji-cheat-sheet/
+https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
+https://github.com/abhisheknaiidu/awesome-github-profile-readme
+https://shields.io/
+
+== unit testing
+https://libcheck.github.io/check/
+https://www.throwtheswitch.org/unity
+https://cmocka.org/
+
+#if defined(_MSC_VER)
+#ifdef _WIN32
+#if defined(__GNUC__)
+#ifdef __cplusplus
+
+#define START_TEST(__testname)\
+static void __testname ## _fn (int _i CK_ATTRIBUTE_UNUSED);\
+static const TTest __testname ## _ttest = {""# __testname, __testname ## _fn, __FILE__, __LINE__};\
+static const TTest * __testname = & __testname ## _ttest;\
+static void __testname ## _fn (int _i CK_ATTRIBUTE_UNUSED)
+
+== GDPR
+https://sematext.com/blog/gdpr-top-5-logging-best-practices/
+
+** make logging non-blocking
+
+== log aggregators
+https://www.elastic.co/
+https://www.splunk.com/
+https://www.graylog.org/
+
+=== optimize for writing or for reading
+https://www.elastic.co/blog/schema-on-write-vs-schema-on-read
+
+== LikWid - performance counters (like PAPI)
+- does not track an application thread across hardware threads
+https://github.com/RRZE-HPC/likwid
+https://github.com/RRZE-HPC/likwid/wiki/FAQ
+
+== GCC print predefined macros
+gcc -dM -E - < /dev/null
+https://sourceforge.net/p/predef/wiki/Home/
+https://gist.github.com/ax3l/53db9fa8a4f4c21ecc5c4100c0d93c94
+
+== visualization
+https://www.speedscope.app/
+https://github.com/jlfwong/speedscope#usage
+https://perfetto.dev/
+https://perfetto.dev/docs/instrumentation/tracing-sdk
+
+== terminal colors
+"\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m"
+https://en.wikipedia.org/wiki/ANSI_escape_code
+https://chrisyeh96.github.io/2020/03/28/terminal-colors.html
+
+== JSON
+https://www.rfc-editor.org/rfc/rfc7159
+https://jsonlines.org/
+https://hackernoon.com/json-lines-format-76353b4e588d
+https://jsonlines.readthedocs.io/en/latest/
+
+== Linux Epoch
+1970-01-01 00:00:00 +0000 (UTC)
+
+== Linux syslog priorities
+LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, and LOG_DEBUG
+
+== Extended Date Time Format
+https://www.datafix.com.au/BASHing/2020-02-12.html
+https://www.loc.gov/standards/datetime/
+
+== timestamps
+https://nickb.dev/blog/designing-a-rest-api-unix-time-vs-iso-8601
+https://unix4lyfe.org/time/
+www.iso.org/iso/home/standards/iso8601.htm
+https://www.iso.org/news/2017/02/Ref2164.html
+
+== calling functions before main
+http://stackoverflow.com/questions/1113409/attribute-constructor-equivalent-in-vc/2390626#2390626
+https://gist.github.com/tenmyo/dde01e838cdaf14c8353fbad03ab9bc8
+
+== enabling system perf events
+=== command line or batch file
+sudo sh -c 'echo 1 >/proc/sys/kernel/perf_event_paranoid'
+sudo sysctl -w kernel.perf_event_paranoid=-1
+sudo sysctl -w kernel.kptr_restrict=0
+sudo sysctl -w kernel.yama.ptrace_scope=0
+
+=== default values
+> cat /proc/sys/kernel/perf_event_paranoid
+2
+
+> cat /proc/sys/kernel/kptr_restrict
+0
+
+> cat /proc/sys/kernel/yama/ptrace_scope
+1
+
+=== perf_event_paranoid
+Controls use of the performance events system by unprivileged users (without CAP_SYS_ADMIN). The default value is 2.
+
+-1: Allow use of (almost) all events by all users Ignore mlock limit after perf_event_mlock_kb without CAP_IPC_LOCK
+
+=0: Disallow ftrace function tracepoint by users without CAP_SYS_ADMIN Disallow raw tracepoint access by users without CAP_SYS_ADMIN =1: Disallow CPU event access by users without CAP_SYS_ADMIN =2: Disallow kernel profiling by users without CAP_SYS_ADMIN
+
+== perf stat source code
+https://github.com/torvalds/linux/blob/master/tools/perf/builtin-stat.c
+
+.        32,023.76 msec task-clock:u              #    1.000 CPUs utilized
+                 0      context-switches:u        #    0.000 /sec
+                 0      cpu-migrations:u          #    0.000 /sec
+.              567      page-faults:u             #   17.706 /sec
+   127,235,077,161      cycles:u                  #    3.973 GHz                      (62.50%)
+     2,097,556,820      stalled-cycles-frontend:u #    1.65% frontend cycles idle     (62.50%)
+.        4,687,139      stalled-cycles-backend:u  #    0.00% backend cycles idle      (62.50%)
+   200,394,555,222      instructions:u            #    1.57  insn per cycle
+                                                  #    0.01  stalled cycles per insn  (62.50%)
+.   45,824,979,792      branches:u                #    1.431 G/sec                    (62.50%)
+     2,057,497,206      branch-misses:u           #    4.49% of all branches          (62.50%)
+
+32.025712241 seconds time elapsed
+
+31.820490000 seconds user
+ 0.002891000 seconds sys
+
+== Linux kernel module for MSR save/restore
+https://github.com/LLNL/msr-safe
+
+== Linux kernel msr module (requires root)
+https://man7.org/linux/man-pages/man4/msr.4.html
+https://www.kernel.org/doc/html/v4.17/trace/events-msr.html
+https://www.reddit.com/r/archlinux/comments/lixt4g/how_do_i_installuse_the_msr_kernel_module/
+https://www.phoronix.com/scan.php?page=news_item&px=Linux-Filter-Tightening-MSRs
+
+== Coding Standard - Google
+https://google.github.io/styleguide/cppguide.html
+
+== Documentation - Doxygen
+https://www.doxygen.nl/index.html
+
+-- Environmental Variables
+
+* BG_SUBSYSTEM_FILTER
+* BG_LOG_DIR
+
+=== Debug
+
+* bg_function(subsystem, session, count, code)
+* bg_debug(message, ...)
+* bg_assert(expression)
+* bg_assert_stderr(expression)
+* bg_error_stderr()
+
+=== Profile
+
+* bg_function(subsystem, session, count, code)
+
+=== Test
+
+bg_test_suite_setup(suite, code)
+bg_test(suite, name, code)
+
+== Windows Performance Counters
+https://docs.microsoft.com/en-us/windows/win32/perfctrs/performance-counters-portal
+https://docs.microsoft.com/en-us/windows/win32/perfctrs/consuming-counter-data
+https://docs.microsoft.com/en-us/windows/win32/perfctrs/using-the-pdh-functions-to-consume-counter-data
+https://docs.microsoft.com/en-us/windows/win32/perfctrs/using-the-perflib-functions-to-consume-counter-data
+
+== Assertions/Debugging code philosophy
+
+There is a need to protect the intellectual property of the source code in a release environment.
+You should not have to worry about the effect on the performance of the code if
+you add assertions. Error checks that need to be retained in the released code
+should probably not terminate the program.
+Debug statements can be used to signal warnings, since these should also be
+excluded from release builds.
+Unit tests are a great complement to assertions.
+Assertions should end the program execution. Assertions are for verifying that
+situations that should not happen, actually did not happen. These are situations
+that can never occur in release in a fully debugged program.
+
+https://wiki.c2.com/?DoNotUseAssertions
+
+https://wiki.c2.com/?ShipWithAssertionsOn
+
+== CPU Cache Sizes
+> lscpu | grep cache
+L1d cache:                       192 KiB (6 instances)
+L1i cache:                       192 KiB (6 instances)
+L2 cache:                        3 MiB (6 instances)
+L3 cache:                        32 MiB (1 instance)
+
+> getconf -a | grep CACHE
+LEVEL1_ICACHE_SIZE                 32768
+LEVEL1_ICACHE_ASSOC
+LEVEL1_ICACHE_LINESIZE             64
+LEVEL1_DCACHE_SIZE                 32768
+LEVEL1_DCACHE_ASSOC                8
+LEVEL1_DCACHE_LINESIZE             64
+LEVEL2_CACHE_SIZE                  524288
+LEVEL2_CACHE_ASSOC                 8
+LEVEL2_CACHE_LINESIZE              64
+LEVEL3_CACHE_SIZE                  33554432
+LEVEL3_CACHE_ASSOC                 0
+LEVEL3_CACHE_LINESIZE              64
+LEVEL4_CACHE_SIZE
+LEVEL4_CACHE_ASSOC
+LEVEL4_CACHE_LINESIZE
+
+== Microsoft C/C++ language conformance by Visual Studio version
+https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance
+https://clang.llvm.org/docs/MSVCCompatibility.html
+https://clang.llvm.org/docs/UsersManual.html#clang-cl
+https://gcc.gnu.org/projects/cxx-status.html
+https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html
+https://clang.llvm.org/cxx_status.html
+
+== Perf Tutorial
+http://sandsoftwaresound.net/perf/perf-tutorial-hot-spots/
+http://sandsoftwaresound.net/perf/perf-tut-count-hw-events/
+http://sandsoftwaresound.net/perf/perf-tut-profile-hw-events/
+
+== C++ logging libraries
+https://github.com/gabime/spdlog/wiki/Default-logger
+https://github.com/amrayn/easyloggingpp
+https://github.com/SergiusTheBest/plog
+https://github.com/emilk/loguru
+https://logging.apache.org/log4cxx/latest_stable/
+https://github.com/google/glog
+
+== Robust Statistics
+https://en.wikipedia.org/wiki/Robust_statistics
+https://en.wikipedia.org/wiki/Median
+https://en.wikipedia.org/wiki/Median_absolute_deviation
+https://en.wikipedia.org/wiki/Interquartile_range
+https://en.wikipedia.org/wiki/Multivariate_statistics
+https://wis.kuleuven.be/stat/robust/papers/publications-1990/rousseeuwbassett-remedian-jasa-1990.pdf
+
+== Appliance Light Bulbs
+incandescent and LED bulbs
+similar price, lumens
+but LED last 8x longer - who would buy incandescent?
+also LED soft white or daylight
+for food or clothes, daylight is much better
+LED uses 5 watts vs 40 watts
+
+== Important Values
+- median (50 percentile)
+- 20 and 80 percentiles
+- mean = average of 20, 50, and 80 percentiles
+- 7 and 93 percentiles
+- standard deviation = (7 + 93 percentiles) / 3 (optimal)
+- +/- six sigma
+- minimum / maximum values
+- maximum sigma
+
+In performance analysis, it is better to make a false positive (type I error) which is then investigated and proven false (wasting time), than a false negative (type II error) which is not investigated, leaving an undiagnosed issue in the system, and more time wasted looking elsewhere.
+
+== Moments Sketch
+https://dawn.cs.stanford.edu/2018/08/29/moments/
+https://github.com/stanford-futuredata/msketch
+https://github.com/stanford-futuredata/momentsketch
+
+== Frequency Trails - outliers and modes
+https://www.brendangregg.com/frequencytrails.html
+https://www.slideshare.net/brendangregg/velocity-stoptheguessing2013
+https://stats.stackexchange.com/questions/176112/how-to-find-the-mode-of-a-probability-density-function
+
+mode  - the highest data peak
+mode2 - at least 75% of mode
+mode3 - at least 50% of mode
+mode4 - at least 25% of mode
+
+== Similar?
+https://github.com/dotnet/BenchmarkDotNet
+- uses mean and standard deviation
+- about microbenchmarking
+- similar to unit tests
+
+sigma3 - 99.7300204% of events, show as % distance from mode
+sigma6 - 99.9999998027% of events, show as % distance from mode
+
+== Outlier Detection
+https://en.wikipedia.org/wiki/Anomaly_detection
+https://en.wikipedia.org/wiki/Outlier
+https://en.wikipedia.org/wiki/Local_outlier_factor
+
+== Multi-Modes Detection
+https://aakinshin.net/posts/lowland-multimodality-detection/
+https://aakinshin.net/posts/qrde-hd/
+https://www.brendangregg.com/FrequencyTrails/modes.html
+
+== Welford's online algorithm
+https://www.johndcook.com/blog/skewness_kurtosis/
+https://www.johndcook.com/blog/running_regression/
+https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+
+6 sigma 	99.9999998027% 	0.0000001973% 	1 / 506797346
+
+== Approximate Counting
+https://en.wikipedia.org/wiki/Approximate_counting_algorithm
+https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf
+
+== Data Sets
+=== cpu_act
+The Computer Activity databases are a collection of computer systems activity measures.
+
+https://www.openml.org/search?type=data&status=active&id=573
+
+=== fps-in-video-games
+FPS measurement of video games executed on computers
+
+https://www.openml.org/search?type=data&status=active&id=42737
+
+=== Image Recognition Task Execution Times in Mobile Edge Computing Data Set
+turnaround execution times (in seconds) for offloaded image recognition tasks when executed in different edge servers
+
+https://archive.ics.uci.edu/ml/datasets/Image+Recognition+Task+Execution+Times+in+Mobile+Edge+Computing
+
+== When and why the template & typename keywords are needed
+http://www.aerialmantis.co.uk/blog/2017/03/17/template-keywords/
+
+== Uncurled - everything I know and learned about running and maintaining Open Source projects for three decades.
+https://un.curl.dev/
+
+== Sparklines
+https://github.com/deeplook/sparklines
+https://github.com/holman/spark/wiki/Wicked-Cool-Usage
+https://blog.jonudell.net/2021/08/05/the-tao-of-unicode-sparklines/
+problematic characters U+2581 (too narrow) and
+U+2584/U+2588 (below baseline and too narrow)
+▁▂▃▄▅▆▇█
+005F _
+2581 ▁
+2582 ▂
+2583 ▃
+2584 ▅
+2585 ▅
+2586 ▆
+2587 ▇
+2588 █
+2591 ░
+2592 ▒
+2593 ▓
+
+== Approximate Counter
+one byte, 4 bits mantissa, 4 bits exponent
+max value 1015792
+range=10	        average error % = 0
+range=100	        average error % = 1.2743
+range=1000	        average error % = 1.67087
+range=10000	        average error % = 1.49986
+range=50000	        average error % = 1.34279
+range=100000	    average error % = 1.62138
+range=500000	    average error % = 1.3833
+range=1000000	    average error % = 1.40136
+range=1015792	    average error % = 1.25471
+
+one byte, 5 bits mantissa, 3 bits exponent
+maximum value=8032
+range=10	   average error % = 0
+range=100	   average error % = 0.580284
+range=500	   average error % = 0.667543
+range=1000	   average error % = 0.841433
+range=5000	   average error % = 0.653467
+
+
+== Logarithm
+The most direct way is to just compute the log10 of the limits, compute linearly spaced bins, and then convert back by raising to the power of 10.
+
+== Choosing Appropriate Measures
+The mean absolute deviation (MAD) uses the mean in its calculation.
+So, when a data distribution is symmetric,
+    ● use the mean to describe the center and
+    ● use the MAD to describe the variation.
+The interquartile range (IQR) uses quartiles in its calculation.
+So, when a data distribution is skewed,
+    ● use the median to describe the center and
+    ● use the IQR to describe the variation.
+
+For a large data set (over 100 points) from a symmetric population, the average of the 20th, 50th, and 80th percentile is the most efficient 3 point L-estimator, with 88% efficiency.
+
+== Benchmark tools
+https://github.com/google/benchmark
+https://github.com/andikleen/pmu-tools/tree/master/jevents
