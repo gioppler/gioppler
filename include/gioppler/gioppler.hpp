@@ -42,7 +42,7 @@ constexpr static BuildMode g_build_mode = BuildMode::profile;
 #elif defined(ANTEATER_BUILD_MODE_RELEASE)
 constexpr static BuildMode g_build_mode = BuildMode::release;
 #else
-#warning Anteater build mode not defiled. Disabling library.
+#warning Anteater build mode not defined. Disabling library.
 constexpr static BuildMode g_build_mode = BuildMode::off;
 #endif
 
@@ -138,14 +138,14 @@ class LinuxEvent {
  public:
   LinuxEvent() : _num_events(0) {}
 
-  explicit LinuxEvent(const std::string_view name, const uint32_t event_type, const uint64_t event) {
+  LinuxEvent(const std::string_view name, const uint32_t event_type, const uint64_t event) {
     _num_events = 1;
     _name1 = name;
     _fd1 = open_event(name, event_type, event, -1);
   }
 
-  explicit LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
-                      const std::string_view name2, const uint32_t event_type2, const uint64_t event2) {
+  LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
+             const std::string_view name2, const uint32_t event_type2, const uint64_t event2) {
     _num_events = 2;
     _name1 = name1;
     _fd1 = open_event(name1, event_type1, event1, -1);
@@ -155,9 +155,9 @@ class LinuxEvent {
     reset_event(name1, _fd1, (_num_events == 1 ? Group::single : Group::leader));
   }
 
-  explicit LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
-                      const std::string_view name2, const uint32_t event_type2, const uint64_t event2,
-                      const std::string_view name3, const uint32_t event_type3, const uint64_t event3) {
+  LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
+             const std::string_view name2, const uint32_t event_type2, const uint64_t event2,
+             const std::string_view name3, const uint32_t event_type3, const uint64_t event3) {
     _num_events = 3;
     _name1 = name1;
     _fd1 = open_event(name1, event_type1, event1, -1);
@@ -169,10 +169,10 @@ class LinuxEvent {
     reset_event(name1, _fd1, (_num_events == 1 ? Group::single : Group::leader));
   }
 
-  explicit LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
-                      const std::string_view name2, const uint32_t event_type2, const uint64_t event2,
-                      const std::string_view name3, const uint32_t event_type3, const uint64_t event3,
-                      const std::string_view name4, const uint32_t event_type4, const uint64_t event4) {
+  LinuxEvent(const std::string_view name1, const uint32_t event_type1, const uint64_t event1,
+             const std::string_view name2, const uint32_t event_type2, const uint64_t event2,
+             const std::string_view name3, const uint32_t event_type3, const uint64_t event3,
+             const std::string_view name4, const uint32_t event_type4, const uint64_t event4) {
     _num_events = 4;
     _name1 = name1;
     _fd1 = open_event(name1, event_type1, event1, -1);
