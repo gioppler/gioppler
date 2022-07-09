@@ -20,8 +20,8 @@
 // SOFTWARE.
 
 #pragma once
-#ifndef GIOPPLER_HPP
-#define GIOPPLER_HPP
+#ifndef GIOPPLER_GIOPPLER_HPP
+#define GIOPPLER_GIOPPLER_HPP
 
 #if __cplusplus < 202002L
 #error C++20 or newer support required to use this header-only library.
@@ -44,6 +44,7 @@
 #include <thread>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <version>
 
 #include <cassert>
@@ -59,19 +60,19 @@ namespace gioppler {
 // g_build_mode controls the operating mode for the library.
 // Normally this is controlled from the CMake build files.
 // Define one of these constants to manually control the variable.
-enum class BuildMode {off, debug, test, profile, qa, release};
+enum class BuildMode {off, development, test, profile, qa, production};
 #if defined(GIOPPLER_BUILD_MODE_OFF)
 constexpr static inline BuildMode g_build_mode = BuildMode::off;
-#elif defined(GIOPPLER_BUILD_MODE_DEBUG)
-constexpr static inline BuildMode g_build_mode = BuildMode::debug;
+#elif defined(GIOPPLER_BUILD_MODE_DEVELOPMENT)
+constexpr static inline BuildMode g_build_mode = BuildMode::development;
 #elif defined(GIOPPLER_BUILD_MODE_TEST)
 constexpr static inline BuildMode g_build_mode = BuildMode::test;
 #elif defined(GIOPPLER_BUILD_MODE_PROFILE)
 constexpr static inline BuildMode g_build_mode = BuildMode::profile;
 #elif defined(GIOPPLER_BUILD_MODE_QA)
 constexpr static inline BuildMode g_build_mode = BuildMode::qa;
-#elif defined(GIOPPLER_BUILD_MODE_RELEASE)
-constexpr static inline BuildMode g_build_mode = BuildMode::release;
+#elif defined(GIOPPLER_BUILD_MODE_PRODUCTION)
+constexpr static inline BuildMode g_build_mode = BuildMode::production;
 #else
 #warning Build mode not defined. Disabling Gioppler library.
 constexpr static inline BuildMode g_build_mode = BuildMode::off;
@@ -214,22 +215,31 @@ std::string format_source_location(const std::source_location &location)
     return message;
 }
 
+std::string format_timestamp(const ) {
+
+
+}
+
+// -----------------------------------------------------------------------------
+// https://jsonlines.org/
+// https://www.json.org/
+class JsonLine {
+  public:
+
+
+  private:
+    std::unordered_map<std::string, std::variant<bool, double, std::string>> _fields;
+};
+
+
 // -----------------------------------------------------------------------------
 /// log file destination
 class Sink {
  public:
   Sink() {
-    std::random_device random_device;
-    std::independent_bits_engine<std::default_random_engine, 16, std::uint_least16_t>
-      generator{random_device};
-    const std::filesystem::path temp_path{temp_directory_path()};
-    const std::string program_name{get_program_name()};
-    const uint64_t process_id{get_process_id()};
-    const uint_least16_t salt{generator()};
-    const std::string log_name{format("{}-{}-{}.json", program_name, process_id, salt)};
-    _path = temp_path / log_name;
-    std::clog << "INFO: setting gioppler log to " << _path << std::endl;
-    _output_stream.open(_path, std::ios::trunc); // text mode
+    create_filepath();
+    std::clog << "INFO: setting gioppler log to " << _filepath << std::endl;
+    _output_stream.open(_filepath, std::ios::trunc); // text mode
   }
 
   ~Sink() {
@@ -241,8 +251,26 @@ class Sink {
   }
 
  private:
-  std::string _path;
+  std::once_flag _write_thread_init;
+  std::string _filepath;
   std::ostream _output_stream;
+
+  void create_filepath() {
+    std::random_device random_device;
+    std::independent_bits_engine<std::default_random_engine, 16, std::uint_least16_t>
+      generator{random_device};
+    const std::filesystem::path temp_path{temp_directory_path()};
+    const std::string program_name{get_program_name()};
+    const uint64_t process_id{get_process_id()};
+    const uint_least16_t salt{generator()};
+    const std::string log_name{format("{}-{}-{}.json", program_name, process_id, salt)};
+    _filepath = temp_path / log_name;
+  }
+
+  void init_write_thread() {
+
+  }
+}
 };
 
 static Sink g_sink = Sink();
@@ -1423,9 +1451,9 @@ class Function {
 
 }   // namespace gioppler
 
-#endif // GIOPPLER_HPP
+#endif // defined GIOPPLER_GIOPPLER_HPP
 
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 int test(const int instance) {
   brainyguy::Function _{"test", 123, "hello"};
   std::cerr << "inside test " << instance << std::endl;

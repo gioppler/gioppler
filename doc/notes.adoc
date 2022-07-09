@@ -547,10 +547,27 @@ jq -r '.stock[] | [.id, .item, .description] | @csv' test.json
 - Excel
 
 == API
-gioppler::set_thread_name(std::string_view thread_name);
-gioppler::get_thread_id();
+=== Ways to enable/disable functionality
+- file name and line number range
+* GIOPPLER_FILE=cppreference.cpp:25-200
+- function name - can include namespace names and/or class name
+* GIOPPLER_FUNCTION=bar::baz
+- filter - arbitrary dotted string
+* GIOPPLER_FILTER=matrix.primitive
+
+- client id - client name
+* GIOPPLER_USER=creyes
+- subsystem - major application runtime functional areas
+* GIOPPLER_SUBSYSTEM=database.update
+- request id - limit to a specific set of data
+* GIOPPLER_REQUEST=123-45-6789
+
 gioppler::create_request_id();
-gioppler::hash_request_id(std::string_view request_id);
+gioppler::hash_request(std::string_view request_id);
+
+gioppler::set_subsystem(std::string_view subsystem);
+gioppler::set_client(std::string_view client_id);
+gioppler::set_request(std::string_view request_id);
 
 // these are enabled in debug mode - logic errors
 gioppler::contract::argument(bool condition);
@@ -559,18 +576,19 @@ gioppler::contract::assert(bool condition);
 gioppler::contract::Invariant invariant(lambda);
 gioppler::contract::Ensure ensure(lambda);
 
-gioppler::debug_message(std::string_view subsystem, std::string_view format_str, const Args&... args);
-gioppler::set_breakpoint(std::string_view subsystem);
+gioppler::debug_message(std::string_view filter, StringFunction string_function);
+gioppler::set_breakpoint(std::string_view filter);
 
-gioppler::Profile profile(std::string_view subsystem, std::string_view request_id = "", double workload = 0);
+gioppler::Profile profile(std::string_view filter, double workload = 0);
 
-gioppler::register_test(std::string_view subsystem, std::string_view test_name, test);
-gioppler::register_benchmark(std::string_view subsystem, std::string_view benchmark_name, benchmark);
+gioppler::register_test(std::string_view filter, std::string_view test_name, test);
+gioppler::register_benchmark(std::string_view filter, std::string_view benchmark_name, benchmark);
 
 // these are always enabled
 gioppler::runtime_assert(bool condition);
-gioppler::log_error(std::string_view format_str, const Args&... args);
-gioppler::log_message(std::string_view format_str, const Args&... args);
+gioppler::log_error(StringFunction string_function);
+gioppler::log_branch(StringFunction string_function);
+gioppler::log_message(StringFunction string_function);
 
 === Test
 
@@ -588,3 +606,29 @@ __attribute__((__constructor__)) void called_before_main()
 std::call_once
 std::atexit
 std::at_quick_exit
+
+http://utf8everywhere.org/
+
+grug tips on logging are:
+
+=== https://grugbrain.dev/
+- log all major logical branches within code (if/for)
+- if "request" span multiple machine in cloud infrastructure, include request ID in all so logs can be grouped
+- if possible make log level dynamically controlled, so grug can turn on/off when need debug issue (many!)
+- if possible make log level per user, so can debug specific user issue
+https://stackify.com/logging-java/
+
+IDEA: hash sensitive data in log automatically in production mode.
+IDEA: Need to support fully asynchronous log writing (use different thread).
+IDEA: Only log errors to the console.
+IDEA: Support deferred log message evaluation via lambda.
+IDEA: add [[nodiscard]] as appropriate
+TODO: use https://en.cppreference.com/w/cpp/string/basic_string/operator%22%22s
+TODO: use https://en.cppreference.com/w/cpp/string/basic_string_view/operator%22%22sv
+- using namespace std::literals;
+TODO: use concepts with templates
+TODO: add noexcept to functions
+TODO: change cost to constexpr, as appropriate
+
+https://cppinsights.io/
+https://godbolt.org/
