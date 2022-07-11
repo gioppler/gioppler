@@ -570,6 +570,8 @@ gioppler::set_client(std::string_view client_id);
 gioppler::set_request(std::string_view request_id);
 
 // these are enabled in debug mode - logic errors
+// https://doc.bccnsoft.com/docs/cppreference2018/en/cpp/language/attributes/contract.html
+// https://en.cppreference.com/w/cpp/error/exception
 gioppler::contract::argument(bool condition);
 gioppler::contract::expect(bool condition);
 gioppler::contract::assert(bool condition);
@@ -632,3 +634,14 @@ TODO: change cost to constexpr, as appropriate
 
 https://cppinsights.io/
 https://godbolt.org/
+
+== License
+https://github.com/cla-assistant/cla-assistant
+https://opensource.org/licenses/MIT
+https://contributoragreements.org/
+https://software.llnl.gov/about/licenses/#developer-certificate-of-origin
+https://developercertificate.org/
+https://spdx.dev/specifications/
+https://spdx.org/licenses/MIT-Modern-Variant.html
+https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for
+https://about.gitlab.com/blog/2017/11/01/gitlab-switches-to-dco-license/
