@@ -27,7 +27,11 @@
 #error C++20 or newer support required to use this library.
 #endif
 
+#include <chrono>
+#include <filesystem>
+#include <random>
 #include <source_location>
+#include "gioppler/config.hpp"
 
 // -----------------------------------------------------------------------------
 /// String formatting function
@@ -101,6 +105,29 @@ std::string format_timestamp(const std::chrono::system_clock::time_point ts)
     std::chrono::duration_cast<std::chrono::nanoseconds>(ts.time_since_epoch()).count();
   const std::uint64_t ns = timestamp_ns % 1000'000'000l;
   return format("{0:%FT%T}.{1:09d}{0:%zZ}", ts, ns);
+}
+
+// -----------------------------------------------------------------------------
+/// Create file path for sink destination.
+std::string create_filepath(const std::string_view directory = ".", const std::string_view extension = ".txt") {
+  std::filesystem::path directory_path;
+  if (directory == "") {   // "" means use the system temporary file path
+    directory_path = std::filesystem::temp_directory_path();
+  } else if (directory == ".") {   // "." means use the current directory
+    directory_path = std::filesystem::current_path();
+  } else {   // otherwise path contains the directory to use for the log file
+    directory_path = std::filesystem::canonical(std::filesystem::path(directory));
+  }
+
+  std::random_device random_device;
+  std::independent_bits_engine<std::default_random_engine, 32, std::uint_least32_t>
+    generator{random_device()};
+
+  const std::string program_name{get_program_name()};
+  const uint64_t process_id{get_process_id()};
+  const uint32_t salt{generator() % 10'000};   // up to four digits
+  const std::string log_name{format("{}-{}-{}{}}", program_name, process_id, salt, extension)};
+  return directory_path / log_name;
 }
 
 // -----------------------------------------------------------------------------

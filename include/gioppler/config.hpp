@@ -104,4 +104,9 @@ constexpr static inline Architecture g_architecture = Architecture::unknown;
 }   // namespace gioppler
 
 // -----------------------------------------------------------------------------
+#if defined(GIOPPLER_PLATFORM_LINUX)
+#include "gioppler/linux/config.hpp"
+#endif
+
+// -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_CONFIG_HPP

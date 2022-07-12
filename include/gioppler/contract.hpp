@@ -32,6 +32,7 @@
 #include <iostream>
 #include <source_location>
 #include <stdexcept>
+#include "gioppler/utility.hpp"
 
 // -----------------------------------------------------------------------------
 /// Contracts to ensure correct program behavior.
@@ -159,7 +160,6 @@ class Invariant {
   std::source_location _source_location;
 };
 
-
 // -----------------------------------------------------------------------------
 /// ensure postcondition to check on scope exit
 class Ensure {
@@ -172,7 +172,7 @@ class Ensure {
     _source_location(source_location)
   { }
 
-  // recheck condition on scope exit
+  // check condition only on scope exit
   // https://en.cppreference.com/w/cpp/error/uncaught_exception
   // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4152.pdf
   ~Ensure() {

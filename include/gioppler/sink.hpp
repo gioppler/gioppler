@@ -27,56 +27,85 @@
 #error C++20 or newer support required to use this library.
 #endif
 
-#include <filesystem>
-#include <future>
+#include <chrono>
+#include <fstream>
 #include <functional>
+#include <future>
+#include <iostream>
 #include <list>
 #include <memory>
-#include <random>
+#include <mutex>
+#include <ostream>
+#include <sstream>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
 using namespace std::chrono_literals;
 
-#include "gioppler/linux/config.hpp"
+#include "gioppler/config.hpp"
 #include "gioppler/utility.hpp"
+#include "gioppler/contract.hpp"
 
 // -----------------------------------------------------------------------------
 namespace gioppler::sink {
 
-// -----------------------------------------------------------------------------
-using Record = std::unordered_map<std::string, std::variant<bool, double, std::string>>;
+// the C++ standard library is not guaranteed to be thread safe
+// file i/o operations are thread-safe on Windows and on POSIX systems
+// https://docs.microsoft.com/en-us/cpp/standard-library/thread-safety-in-the-cpp-standard-library
+// https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_concurrency.html
 
 // -----------------------------------------------------------------------------
-class Sinks {
+/// Data being sent to a sink for processing.
+using Record = std::unordered_map<std::string,
+  std::variant<bool, int64_t, double, std::string, std::chrono::system_clock::time_point>>;
+enum class RecordIndex {boolean = 0, integer, real, string, timestamp};
+
+// -----------------------------------------------------------------------------
+struct Sink {
+  virtual ~Sink() = default;
+  virtual bool write_record(std::shared_ptr<Record> record) = 0;
+};
+
+// -----------------------------------------------------------------------------
+/// Sink management class. Thread safe.
+class SinkManager {
  public:
-  Sinks() : _sinks{}, _workers{} { }
+  SinkManager() : _sinks{}, _workers{} { }
 
-  ~Sinks() {
-    const std::lock_guard<std::mutex> lock(_workers_mutex);
+  /// Waits for all sinks to finish processing data before exiting.
+  ~SinkManager() {
+    const std::lock_guard<std::mutex> lock{_mutex};
     wait_workers();
   }
 
   /// Add another sink to the chain.
-  // Assumed to be called from only one thread at a time.
-  void add_sink(std::function<bool(std::shared_ptr<Record>)> fn) {
-    _sinks.emplace_back(fn);
+  void add_sink(std::unique_ptr<Sink> sink) {
+    const std::lock_guard<std::mutex> lock{_mutex};
+    _sinks.emplace_back(std::move(sink));
   }
 
   /// Write the record to the sink.
   // Sink objects run in their own thread.
   void write_record(std::shared_ptr<Record> record) {
-    const std::lock_guard<std::mutex> lock(_workers_mutex);
+    std::call_once(_create_sinks_once_flag, check_create_sinks);
+    const std::lock_guard<std::mutex> lock{_mutex};
     check_workers();   // check before adding to avoid checking newly added workers
     for (auto&& sink : _sinks) {
-      _workers.emplace_back(std::async(std::launch::async, sink, record));
+      _workers.emplace_back(std::async(std::launch::async, [&sink, record]{return sink->write_record(record);}));
     }
   }
 
  private:
-  std::vector<std::function<bool(std::shared_ptr<Record>)>> _sinks;
+  /// Sink objects are not copied but are called from multiple threads, one for each worker.
+  std::vector<std::unique_ptr<Sink>> _sinks;
   std::list<std::future<bool>> _workers;
-  std::mutex _workers_mutex;
+  std::mutex _mutex;
+  std::once_flag _create_sinks_once_flag;
+
+  /// Create default sinks if write attempted and no sinks defined already
+  static void check_create_sinks();
 
   /// Check and remove workers that have already finished executing.
   void check_workers() {
@@ -92,26 +121,17 @@ class Sinks {
 };
 
 // -----------------------------------------------------------------------------
-static inline Sinks g_sinks{};
+static inline SinkManager g_sink_manager{};
 
 // -----------------------------------------------------------------------------
 /// log file destination using JSON format
 // https://jsonlines.org/
 // https://www.json.org/
-class Json {
+class Json : public Sink {
  public:
-  static void add_sink() {
-
-  }
-
-  void write_record(std::shared_ptr<Record> record) {
-
-  }
-
- private:
-  Json() {
-    create_filepath();
-    std::clog << "INFO: setting gioppler log to " << _filepath << std::endl;
+  Json(std::string_view filepath = "") {
+    _filepath = create_filepath(filepath, ".json");
+    std::clog << "INFO: setting gioppler JSON log to " << _filepath << std::endl;
     _output_stream.open(_filepath, std::ios::trunc); // text mode
   }
 
@@ -119,30 +139,86 @@ class Json {
     _output_stream.close();
   }
 
+  /// add a new JSON format data record sink
+  // path="" means use the system temporary file path
+  // path="." means use the current directory
+  // otherwise path contains the directory to use for the log file
+  static void add_sink(std::string_view path = "") {
+    g_sink_manager.add_sink(std::make_unique<Json>(path));
+  }
+
+ private:
+  std::string _filepath;
+  std::ofstream _output_stream;
+  std::mutex _mutex;
+
+  bool is_record_filtered(const Record& record) {
+    return false;
+  }
+
+  bool write_record(std::shared_ptr<Record> record) {
+    if (is_record_filtered(*record)) {
+      return false;
+    }
+
+    std::stringstream buffer;
+
+    bool first_field = true;
+    for (const auto& [key, value] : *record) {
+      if (first_field) {
+        first_field = false;
+      } else {
+        buffer.put(',');
+      }
+
+      switch (RecordIndex(value.index())) {
+        case RecordIndex::boolean: {
+          buffer << format("\"{}\":{}", key, std::get<bool>(value));
+          break;
+        }
+
+        case RecordIndex::integer: {
+          buffer << format("\"{}\":{}", key, std::get<int64_t>(value));
+          break;
+        }
+
+        case RecordIndex::real: {
+          buffer << format("\"{}\":{}", key, std::get<double>(value));
+          break;
+        }
+
+        case RecordIndex::string: {
+          buffer << format("\"{}\":{}", key, std::get<std::string>(value));
+          break;
+        }
+
+        case RecordIndex::timestamp: {
+          buffer << format("\"{}\":{}", key, format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+          break;
+        }
+
+        default: contract::assert(false);
+      }
+    }
+
+    _output_stream.write(buffer.view().data(), buffer.view().size());
+    return true;
+  }
+
   void write_line(const std::string_view line) {
     _output_stream.write(line.data(), line.size());
   }
-
-  std::once_flag _write_thread_init;
-  std::string _filepath;
-  std::ostream _output_stream;
-
-  void create_filepath() {
-    std::random_device random_device;
-    std::independent_bits_engine<std::default_random_engine, 16, std::uint_least16_t>
-      generator{random_device};
-    const std::filesystem::path temp_path{std::filesystem::temp_directory_path()};
-    const std::string program_name{get_program_name()};
-    const uint64_t process_id{get_process_id()};
-    const uint_least16_t salt{generator()};
-    const std::string log_name{format("{}-{}-{}.json", program_name, process_id, salt)};
-    _filepath = temp_path / log_name;
-  }
-
-  void init_write_thread() {
-
-  }
 };
+
+// -----------------------------------------------------------------------------
+/// Create default sinks if write attempted and no sinks defined already
+// Defined here, so we can refer to the sink classes.
+void SinkManager::check_create_sinks() {
+  if (g_sink_manager._sinks.empty()) {
+    Json::add_sink();
+    // TODO: add other default sinks
+  }
+}
 
 // -----------------------------------------------------------------------------
 }   // namespace gioppler::sink
