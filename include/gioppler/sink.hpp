@@ -53,8 +53,14 @@ namespace gioppler::sink {
 
 // the C++ standard library is not guaranteed to be thread safe
 // file i/o operations are thread-safe on Windows and on POSIX systems
+// the POSIX standard requires that C stdio FILE* operations are atomic
 // https://docs.microsoft.com/en-us/cpp/standard-library/thread-safety-in-the-cpp-standard-library
 // https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_concurrency.html
+// https://en.cppreference.com/w/cpp/io/ios_base/sync_with_stdio
+// Regarding cerr, cout, clog, etc:
+//   Unless std::ios_base::sync_with_stdio(false) has been issued,
+//   it is safe to concurrently access these objects from multiple threads for both formatted and unformatted output.
+//   Due to the overhead necessitated by thread-safety, no other stream objects are thread-safe by default.
 
 // -----------------------------------------------------------------------------
 /// Data being sent to a sink for processing.
@@ -188,12 +194,12 @@ class Json : public Sink {
         }
 
         case RecordIndex::string: {
-          buffer << format("\"{}\":{}", key, std::get<std::string>(value));
+          buffer << format("\"{}\":\"{}\"", key, std::get<std::string>(value));
           break;
         }
 
         case RecordIndex::timestamp: {
-          buffer << format("\"{}\":{}", key, format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+          buffer << format("\"{}\":\"{}\"", key, format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
           break;
         }
 

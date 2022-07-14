@@ -38,19 +38,19 @@ namespace gioppler {
 // g_build_mode controls the operating mode for the library.
 // Normally this is controlled from the CMake build files.
 // Define one of these constants to manually control the variable.
-enum class BuildMode {off, development, test, profile, qa, production};
+enum class BuildMode {off, dev, test, prof, qa, prod};
 #if defined(GIOPPLER_BUILD_MODE_OFF)
 constexpr static inline BuildMode g_build_mode = BuildMode::off;
 #elif defined(GIOPPLER_BUILD_MODE_DEVELOPMENT)
-constexpr static inline BuildMode g_build_mode = BuildMode::development;
+constexpr static inline BuildMode g_build_mode = BuildMode::dev;
 #elif defined(GIOPPLER_BUILD_MODE_TEST)
 constexpr static inline BuildMode g_build_mode = BuildMode::test;
 #elif defined(GIOPPLER_BUILD_MODE_PROFILE)
-constexpr static inline BuildMode g_build_mode = BuildMode::profile;
+constexpr static inline BuildMode g_build_mode = BuildMode::prof;
 #elif defined(GIOPPLER_BUILD_MODE_QA)
 constexpr static inline BuildMode g_build_mode = BuildMode::qa;
 #elif defined(GIOPPLER_BUILD_MODE_PRODUCTION)
-constexpr static inline BuildMode g_build_mode = BuildMode::production;
+constexpr static inline BuildMode g_build_mode = BuildMode::prod;
 #else
 #warning Build mode not defined. Disabling Gioppler library.
 constexpr static inline BuildMode g_build_mode = BuildMode::off;

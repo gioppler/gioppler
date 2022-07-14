@@ -29,9 +29,13 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <random>
 #include <source_location>
+#include <syncstream>
 #include "gioppler/config.hpp"
+using namespace std::literals;
 
 // -----------------------------------------------------------------------------
 /// String formatting function
@@ -108,17 +112,48 @@ std::string format_timestamp(const std::chrono::system_clock::time_point ts)
 }
 
 // -----------------------------------------------------------------------------
-/// Create file path for sink destination.
-std::string create_filepath(const std::string_view directory = ".", const std::string_view extension = ".txt") {
+/// Use the environment to resolve the location of the home directory.
+std::filesystem::path get_home_path() {
+  if (std::getenv("HOME")) {
+    return std::getenv("HOME");
+  } else if (std::getenv("HOMEDRIVE") && std::getenv("HOMEPATH")) {
+    return std::filesystem::path(std::getenv("HOMEDRIVE")) += std::getenv("HOMEPATH");
+  } else if (std::getenv("USERPROFILE")) {
+    return std::getenv("USERPROFILE");
+  } else {
+    return "";
+  }
+}
+
+// -----------------------------------------------------------------------------
+/// Resolve macros, canonicalize, and create directory.
+std::filesystem::path resolve_directory(const std::string_view directory) {
   std::filesystem::path directory_path;
-  if (directory == "") {   // "" means use the system temporary file path
+  std::string_view rest;
+  if (directory.starts_with("<temp>")) {
+    rest = directory.substr("<temp>"sv.size());
     directory_path = std::filesystem::temp_directory_path();
-  } else if (directory == ".") {   // "." means use the current directory
+  } else if (directory.starts_with("<home>")) {
+    rest = directory.substr("<home>"sv.size());
+    directory_path = get_home_path();
+  } else if (directory.starts_with("<current>")) {
+    rest = directory.substr("<current>"sv.size());
     directory_path = std::filesystem::current_path();
-  } else {   // otherwise path contains the directory to use for the log file
-    directory_path = std::filesystem::canonical(std::filesystem::path(directory));
+  } else if (directory.empty()) {
+    directory_path = std::filesystem::current_path();
+  } else {   // otherwise use path as is
+    rest = directory;
   }
 
+  directory_path += rest;
+  directory_path = std::filesystem::weakly_canonical(directory_path);
+  std::filesystem::create_directories(directory_path);
+  return directory_path;
+}
+
+// -----------------------------------------------------------------------------
+/// Create file path for sink destination.
+std::filesystem::path create_filename(const std::string_view extension = "txt") {
   std::random_device random_device;
   std::independent_bits_engine<std::default_random_engine, 32, std::uint_least32_t>
     generator{random_device()};
@@ -126,8 +161,33 @@ std::string create_filepath(const std::string_view directory = ".", const std::s
   const std::string program_name{get_program_name()};
   const uint64_t process_id{get_process_id()};
   const uint32_t salt{generator() % 10'000};   // up to four digits
-  const std::string log_name{format("{}-{}-{}{}}", program_name, process_id, salt, extension)};
-  return directory_path / log_name;
+  const std::string extension_dot = (!extension.empty() && extension[0] != '.') ? "." : "";
+  const std::string filename{format("{}-{}-{}{}{}}", program_name, process_id, salt, extension_dot, extension)};
+  return filename;
+}
+
+// -----------------------------------------------------------------------------
+/// Returns an open output stream for the given path and file extension.
+// The stream does not require synchronization to use.
+// https://en.cppreference.com/w/cpp/io/basic_ios/rdbuf
+// https://en.cppreference.com/w/cpp/io/basic_ostream/basic_ostream
+// Directory patterns:
+//   <temp>, <current>, <home>   - optionally follow these with other directories
+//   <cout>, <clog>, <cerr>      - these specify the entire path
+std::unique_ptr<std::ostream>
+get_output_filepath(const std::string_view directory = "<temp>"sv, const std::string_view extension = "txt")
+{
+  if (directory == "<cerr>") {
+    return std::make_unique<std::osyncstream>(std::cerr);
+  } else if (directory == "<cout>") {
+    return std::make_unique<std::osyncstream>(std::cout);
+  } else if (directory == "<clog>") {
+    return std::make_unique<std::osyncstream>(std::clog);
+  }
+
+  const std::filesystem::path directory_path = resolve_directory(directory);
+  const std::filesystem::path filename_path  = create_filename(extension);
+  return std::make_unique<std::ofstream>(directory_path/filename_path);
 }
 
 // -----------------------------------------------------------------------------

@@ -565,32 +565,38 @@ jq -r '.stock[] | [.id, .item, .description] | @csv' test.json
 gioppler::create_request_id();
 gioppler::hash_request(std::string_view request_id);
 
-gioppler::set_subsystem(std::string_view subsystem);
-gioppler::set_client(std::string_view client_id);
-gioppler::set_request(std::string_view request_id);
-
 // these are enabled in debug mode - logic errors
 // https://doc.bccnsoft.com/docs/cppreference2018/en/cpp/language/attributes/contract.html
 // https://en.cppreference.com/w/cpp/error/exception
 gioppler::contract::argument(bool condition);
 gioppler::contract::expect(bool condition);
-gioppler::contract::assert(bool condition);
+gioppler::contract::confirm(bool condition);
 gioppler::contract::Invariant invariant(lambda);
 gioppler::contract::Ensure ensure(lambda);
 
-gioppler::debug_message(std::string_view filter, StringFunction string_function);
-gioppler::set_breakpoint(std::string_view filter);
+gioppler::dev::trace(std::string_view filter, std::string_view message);
+gioppler::dev::trace(std::string_view filter, StringFunction message_function);
+gioppler::dev::warning(std::string_view filter, std::string_view message);
+gioppler::dev::warning(std::string_view filter, StringFunction message_function);
+gioppler::dev::breakpoint(std::string_view filter);
 
 gioppler::Profile profile(std::string_view filter, double workload = 0);
 
-gioppler::register_test(std::string_view filter, std::string_view test_name, test);
-gioppler::register_benchmark(std::string_view filter, std::string_view benchmark_name, benchmark);
+gioppler::test(std::string_view filter, std::string_view test_name, test);
+gioppler::benchmark(std::string_view filter, std::string_view benchmark_name, benchmark);
 
 // these are always enabled
-gioppler::runtime_assert(bool condition);
-gioppler::log_error(StringFunction string_function);
-gioppler::log_branch(StringFunction string_function);
-gioppler::log_message(StringFunction string_function);
+gioppler::set_subsystem(std::string_view subsystem);
+gioppler::set_client(std::string_view client_id);
+gioppler::set_request(std::string_view request_id);
+
+gioppler::all::certify(bool condition);
+gioppler::all::error(std::string_view message);
+gioppler::all::error(StringFunction message_function);
+gioppler::all::branch(std::string_view message);
+gioppler::all::branch(StringFunction message_function);
+gioppler::all::log(std::string_view message);
+gioppler::all::log(StringFunction message_function);
 
 === Test
 
@@ -634,6 +640,8 @@ TODO: change cost to constexpr, as appropriate
 
 https://cppinsights.io/
 https://godbolt.org/
+https://dogbolt.org/
+https://github.com/vivisect/vivisect
 
 == License
 https://github.com/cla-assistant/cla-assistant
@@ -645,3 +653,9 @@ https://spdx.dev/specifications/
 https://spdx.org/licenses/MIT-Modern-Variant.html
 https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for
 https://about.gitlab.com/blog/2017/11/01/gitlab-switches-to-dco-license/
+
+== Tools
+https://www.ethicalads.io/
+https://readthedocs.org/
+https://www.sphinx-doc.org/
+https://github.com/bitprophet/alabaster
