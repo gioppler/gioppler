@@ -175,7 +175,7 @@ std::filesystem::path create_filename(const std::string_view extension = "txt") 
 //   <temp>, <current>, <home>   - optionally follow these with other directories
 //   <cout>, <clog>, <cerr>      - these specify the entire path
 std::unique_ptr<std::ostream>
-get_output_filepath(const std::string_view directory = "<temp>"sv, const std::string_view extension = "txt")
+get_output_filepath(const std::string_view directory = "<temp>"sv, const std::string_view extension = "txt"sv)
 {
   if (directory == "<cerr>") {
     return std::make_unique<std::osyncstream>(std::cerr);
@@ -187,7 +187,9 @@ get_output_filepath(const std::string_view directory = "<temp>"sv, const std::st
 
   const std::filesystem::path directory_path = resolve_directory(directory);
   const std::filesystem::path filename_path  = create_filename(extension);
-  return std::make_unique<std::ofstream>(directory_path/filename_path);
+  const std::filesystem::path full_path      = directory_path/filename_path;
+  std::clog << "INFO: setting gioppler log to " << full_path << std::endl;
+  return std::make_unique<std::ofstream>(full_path, std::ios::trunc);
 }
 
 // -----------------------------------------------------------------------------

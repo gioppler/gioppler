@@ -136,26 +136,22 @@ static inline SinkManager g_sink_manager{};
 class Json : public Sink {
  public:
   Json(std::string_view filepath = "") {
-    _filepath = create_filepath(filepath, ".json");
-    std::clog << "INFO: setting gioppler JSON log to " << _filepath << std::endl;
-    _output_stream.open(_filepath, std::ios::trunc); // text mode
+    _output_stream = get_output_filepath(filepath, ".json");
   }
 
   ~Json() {
-    _output_stream.close();
   }
 
   /// add a new JSON format data record sink
-  // path="" means use the system temporary file path
-  // path="." means use the current directory
-  // otherwise path contains the directory to use for the log file
-  static void add_sink(std::string_view path = "") {
+  // Directory patterns:
+  //   <temp>, <current>, <home>   - optionally follow these with other directories
+  //   <cout>, <clog>, <cerr>      - these specify the entire path
+  static void add_sink(std::string_view path = "<current>"sv) {
     g_sink_manager.add_sink(std::make_unique<Json>(path));
   }
 
  private:
-  std::string _filepath;
-  std::ofstream _output_stream;
+  std::unique_ptr<std::ostream> _output_stream;
   std::mutex _mutex;
 
   bool is_record_filtered(const Record& record) {
@@ -207,12 +203,12 @@ class Json : public Sink {
       }
     }
 
-    _output_stream.write(buffer.view().data(), buffer.view().size());
+    _output_stream->write(buffer.view().data(), buffer.view().size());
     return true;
   }
 
   void write_line(const std::string_view line) {
-    _output_stream.write(line.data(), line.size());
+    _output_stream->write(line.data(), line.size());
   }
 };
 
