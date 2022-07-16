@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 
+#include "gioppler/contract.hpp"
+
 // -----------------------------------------------------------------------------
 namespace gioppler::histogram
 {
@@ -60,13 +62,13 @@ public:
   Bucket()
     : _observation_min{}, _observation_span{}, _count{}
   {
-    assert(invariant());
+    contract::Invariant inv{std::function(invariant, this)};
   }
 
   explicit Bucket(const observation_t observation)
     : _observation_min{observation}, _observation_span{}, _count{1}
   {
-    assert(invariant());
+    contract::confirm(invariant());
   }
 
   Bucket& operator +=(const Bucket& rhs)

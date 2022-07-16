@@ -27,6 +27,8 @@
 #error C++20 or newer support required to use this library.
 #endif
 
+#include "gioppler/config.hpp"
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 /// Performance Monitoring Counters (pmc), a Linux feature.
@@ -36,7 +38,6 @@
 #include <sys/syscall.h>                  // Definition of SYS_* constants
 #include <sys/ioctl.h>
 #include <unistd.h>
-#endif
 
 // -----------------------------------------------------------------------------
 namespace gioppler::linux
@@ -457,7 +458,10 @@ class LinuxEvents {
 };
 
 // -----------------------------------------------------------------------------
-}   // namespace gioppler::linux
+} // namespace gioppler::linux
+
+// -----------------------------------------------------------------------------
+#endif // GIOPPLER_PLATFORM_LINUX
 
 // -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_LINUX_COUNTER_HPP

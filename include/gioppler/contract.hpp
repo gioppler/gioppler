@@ -29,15 +29,17 @@
 
 #include <exception>
 #include <functional>
+#include <memory>
 #include <iostream>
 #include <source_location>
 #include <stdexcept>
+
 #include "gioppler/utility.hpp"
+#include "gioppler/sink.hpp"
 
 // -----------------------------------------------------------------------------
 /// Contracts to ensure correct program behavior.
-// These print messages to cerr and throw exceptions, as needed.
-// They do not try to write to the log, assuming it may not be set up.
+// These print messages to the log and throw exceptions, as needed.
 // These functions will always succeed.
 namespace gioppler::contract
 {
@@ -67,15 +69,21 @@ public:
 // the function's expectation of its arguments upon entry into the function
 // prints error to std::cerr and throws exception
 void argument(const bool condition,
-              [[maybe_unused]] const std::source_location &location =
+              [[maybe_unused]] const std::source_location &source_location =
                 std::source_location::current())
 {
   if (!condition) [[unlikely]] {
     const std::string message =
       format("ERROR: {}: invalid argument\n",
-             format_source_location(location));
-      std::cerr << message;
-      throw contract_violation{message};
+             format_source_location(source_location));
+    std::shared_ptr<Record> record{make_shared_init_list<Record>({
+      {"category", "contract"},
+      {"subcategory", "argument"},
+      {"message", message}
+    })};
+    record->merge(source_location_to_record(source_location));
+    sink::g_sink_manager.write_record(record);
+    throw contract_violation{message};
   }
 }
 
@@ -84,31 +92,43 @@ void argument(const bool condition,
 // the function's expectation of the state of other objects upon entry into the function
 // prints error to std::cerr and throws exception
 void expect(const bool condition,
-            [[maybe_unused]] const std::source_location &location =
+            [[maybe_unused]] const std::source_location &source_location =
               std::source_location::current())
 {
   if (!condition) [[unlikely]] {
     const std::string message =
       format("ERROR: {}: expect condition failed\n",
-             format_source_location(location));
-      std::cerr << message;
-      throw contract_violation{message};
+             format_source_location(source_location));
+    std::shared_ptr<Record> record{make_shared_init_list<Record>({
+      {"category", "contract"},
+      {"subcategory", "expect"},
+      {"message", message}
+    })};
+    record->merge(source_location_to_record(source_location));
+    sink::g_sink_manager.write_record(record);
+    throw contract_violation{message};
   }
 }
 
 // -----------------------------------------------------------------------------
-/// asserts a condition that should be satisfied where it appears in a function body
+/// confirms a condition that should be satisfied where it appears in a function body
 // prints error to std::cerr and throws exception
-void assert(const bool condition,
-            [[maybe_unused]] const std::source_location &location =
+void confirm(const bool condition,
+            [[maybe_unused]] const std::source_location &source_location =
               std::source_location::current())
 {
   if (!condition) [[unlikely]] {
     const std::string message =
-      format("ERROR: {}: assertion failed\n",
-             format_source_location(location));
-      std::cerr << message;
-      throw contract_violation{message};
+      format("ERROR: {}: confirm failed\n",
+             format_source_location(source_location));
+    std::shared_ptr<Record> record{make_shared_init_list<Record>({
+      {"category", "contract"},
+      {"subcategory", "confirm"},
+      {"message", message}
+    })};
+    record->merge(source_location_to_record(source_location));
+    sink::g_sink_manager.write_record(record);
+    throw contract_violation{message};
   }
 }
 
@@ -118,7 +138,7 @@ class Invariant {
  public:
   // check invariant on scope entry
   Invariant(std::function<bool()> condition_function,
-            [[maybe_unused]] const std::source_location &location =
+            [[maybe_unused]] const std::source_location &source_location =
               std::source_location::current())
   : _uncaught_exceptions(std::uncaught_exceptions()),
     _condition_function(condition_function),
@@ -128,7 +148,13 @@ class Invariant {
       const std::string message =
         format("ERROR: {}: invariant failed on entry\n",
                format_source_location(_source_location));
-        std::cerr << message;
+        std::shared_ptr<Record> record{make_shared_init_list<Record>({
+          {"category", "contract"},
+          {"subcategory", "invariant"},
+          {"message", message}
+        })};
+        record->merge(source_location_to_record(_source_location));
+        sink::g_sink_manager.write_record(record);
         throw contract_violation{message};
     }
   }
@@ -142,7 +168,13 @@ class Invariant {
         const std::string message =
           format("ERROR: {}: invariant failed on exit\n",
                  format_source_location(_source_location));
-          std::cerr << message;
+          std::shared_ptr<Record> record{make_shared_init_list<Record>({
+            {"category", "contract"},
+            {"subcategory", "invariant"},
+            {"message", message}
+          })};
+          record->merge(source_location_to_record(_source_location));
+          sink::g_sink_manager.write_record(record);
           throw contract_violation{message};
       } catch(...) {
         if (std::uncaught_exceptions() == _uncaught_exceptions) {
@@ -165,7 +197,7 @@ class Invariant {
 class Ensure {
  public:
   Ensure(std::function<bool()> condition_function,
-         [[maybe_unused]] const std::source_location &location =
+         [[maybe_unused]] const std::source_location &source_location =
           std::source_location::current())
   : _uncaught_exceptions(std::uncaught_exceptions()),
     _condition_function(condition_function),
@@ -181,7 +213,13 @@ class Ensure {
         const std::string message =
           format("ERROR: {}: ensure condition failed on exit\n",
                  format_source_location(_source_location));
-          std::cerr << message;
+          std::shared_ptr<Record> record{make_shared_init_list<Record>({
+            {"category", "contract"},
+            {"subcategory", "ensure"},
+            {"message", message}
+          })};
+          record->merge(source_location_to_record(_source_location));
+          sink::g_sink_manager.write_record(record);
           throw contract_violation{message};
       } catch(...) {
         if (std::uncaught_exceptions() == _uncaught_exceptions) {

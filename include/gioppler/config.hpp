@@ -38,75 +38,70 @@ namespace gioppler {
 // g_build_mode controls the operating mode for the library.
 // Normally this is controlled from the CMake build files.
 // Define one of these constants to manually control the variable.
-enum class BuildMode {off, dev, test, prof, qa, prod};
+enum class BuildMode {Off, Dev, Test, Prof, Qa, Prod};
 #if defined(GIOPPLER_BUILD_MODE_OFF)
-constexpr static inline BuildMode g_build_mode = BuildMode::off;
-#elif defined(GIOPPLER_BUILD_MODE_DEVELOPMENT)
-constexpr static inline BuildMode g_build_mode = BuildMode::dev;
+constexpr static inline BuildMode g_build_mode = BuildMode::Off;
+#elif defined(GIOPPLER_BUILD_MODE_DEV)
+constexpr static inline BuildMode g_build_mode = BuildMode::Dev;
 #elif defined(GIOPPLER_BUILD_MODE_TEST)
-constexpr static inline BuildMode g_build_mode = BuildMode::test;
-#elif defined(GIOPPLER_BUILD_MODE_PROFILE)
-constexpr static inline BuildMode g_build_mode = BuildMode::prof;
+constexpr static inline BuildMode g_build_mode = BuildMode::Test;
+#elif defined(GIOPPLER_BUILD_MODE_PROF)
+constexpr static inline BuildMode g_build_mode = BuildMode::Prof;
 #elif defined(GIOPPLER_BUILD_MODE_QA)
-constexpr static inline BuildMode g_build_mode = BuildMode::qa;
-#elif defined(GIOPPLER_BUILD_MODE_PRODUCTION)
-constexpr static inline BuildMode g_build_mode = BuildMode::prod;
+constexpr static inline BuildMode g_build_mode = BuildMode::Qa;
+#elif defined(GIOPPLER_BUILD_MODE_PROD)
+constexpr static inline BuildMode g_build_mode = BuildMode::Prod;
 #else
 #warning Build mode not defined. Disabling Gioppler library.
-constexpr static inline BuildMode g_build_mode = BuildMode::off;
+constexpr static inline BuildMode g_build_mode = BuildMode::Off;
 #endif
 
 // -----------------------------------------------------------------------------
 /// Platform defines the operating system.
 // Often used to control include files, so define constants also.
-enum class Platform {linux, windows, bsd};
+enum class Platform {Linux, Windows, Bsd};
 #if defined(__linux__) || defined(__ANDROID__)
 #define GIOPPLER_PLATFORM_LINUX 1
-constexpr static inline Platform g_platform = Platform::linux;
+constexpr static inline Platform g_platform = Platform::Linux;
 #elif defined(_WIN32) || defined(_WIN64)
 #define GIOPPLER_PLATFORM_WINDOWS 1
 constexpr static inline Platform g_platform = Platform::windows;
 #elif defined(BSD) || defined(__FreeBSD__) || defined(__NetBSD__) || \
       defined(__OpenBSD__) || defined(__DragonFly__)
 #define GIOPPLER_PLATFORM_BSD 1
-constexpr static inline Platform g_platform = Platform::bsd;
+constexpr static inline Platform g_platform = Platform::Bsd;
 #else
 #error Operating system platform unsupported.
 #endif
 
 // -----------------------------------------------------------------------------
 /// Major compilers. Sometimes used to enable features.
-enum class Compiler {gcc, clang, msvc, unknown};
+enum class Compiler {Gcc, Clang, Msvc, Unknown};
 #if defined(__clang__)
-constexpr static inline Compiler g_compiler = Compiler::clang;
+constexpr static inline Compiler g_compiler = Compiler::Clang;
 #elif defined(__GNUC__)
-constexpr static inline Compiler g_compiler = Compiler::gcc;
+constexpr static inline Compiler g_compiler = Compiler::Gcc;
 #elif defined(_MSC_VER)
-constexpr static inline Compiler g_compiler = Compiler::msvc;
+constexpr static inline Compiler g_compiler = Compiler::Msvc;
 #else
 #warning Could not identify C++ compiler.
-constexpr static inline Compiler g_compiler = Compiler::unknown;
+constexpr static inline Compiler g_compiler = Compiler::Unknown;
 #endif
 
 // -----------------------------------------------------------------------------
 /// CPU architecture.
-enum class Architecture {x86, arm, unknown};
+enum class Architecture {X86, Arm, Unknown};
 #if defined(__i386__) || defined(__x86_64__)
-constexpr static inline Architecture g_architecture = Architecture::x86;
+constexpr static inline Architecture g_architecture = Architecture::X86;
 #elif defined(__arm__) || defined(__arm64__) || defined(__aarch64__)
-constexpr static inline Architecture g_architecture = Architecture::arm;
+constexpr static inline Architecture g_architecture = Architecture::Arm;
 #else
 #warning Could not identify CPU architecture.
-constexpr static inline Architecture g_architecture = Architecture::unknown;
+constexpr static inline Architecture g_architecture = Architecture::Unknown;
 #endif
 
 // -----------------------------------------------------------------------------
 }   // namespace gioppler
-
-// -----------------------------------------------------------------------------
-#if defined(GIOPPLER_PLATFORM_LINUX)
-#include "gioppler/linux/config.hpp"
-#endif
 
 // -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_CONFIG_HPP

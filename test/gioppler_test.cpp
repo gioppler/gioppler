@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-#include "brainyguy/bglogger.h"
+#include "gioppler/gioppler.hpp"
 
 // https://en.wikipedia.org/wiki/Ackermann_function
 // runs in about 9.5 seconds in debug mode for (4, 1)

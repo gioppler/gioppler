@@ -27,6 +27,7 @@
 #error C++20 or newer support required to use this library.
 #endif
 
+#include <cassert>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -34,8 +35,12 @@
 #include <random>
 #include <source_location>
 #include <syncstream>
-#include "gioppler/config.hpp"
+#include <unordered_map>
+#include <variant>
 using namespace std::literals;
+
+#include "gioppler/config.hpp"
+#include "gioppler/platform.hpp"
 
 // -----------------------------------------------------------------------------
 /// String formatting function
@@ -50,7 +55,7 @@ template <typename... T>
 }   // namespace gioppler
 #else
 // https://github.com/fmtlib/fmt
-#define FMT_HEADER_ONLY
+#define FMT_HEADER_ONLY 1
 #include <fmt/format.h>
 #include <fmt/chrono.h>
 namespace gioppler {
@@ -63,19 +68,6 @@ template <typename... T>
 
 // -----------------------------------------------------------------------------
 namespace gioppler {
-
-// -----------------------------------------------------------------------------
-/// convert a source_location into a string
-std::string format_source_location(const std::source_location &location)
-{
-    const std::string message =
-      format("{}({}:{}): {}",
-             location.file_name(),
-             location.line(),
-             location.column(),
-             location.function_name());
-    return message;
-}
 
 // -----------------------------------------------------------------------------
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
@@ -95,20 +87,18 @@ struct pair_hash {
 };
 
 // -----------------------------------------------------------------------------
-/// Convert a time point into ISO-8601 string format.
-// https://en.wikipedia.org/wiki/ISO_8601
-// https://www.iso.org/obp/ui/#iso:std:iso:8601:-1:ed-1:v1:en
-// https://www.iso.org/obp/ui/#iso:std:iso:8601:-2:ed-1:v1:en
-// https://en.cppreference.com/w/cpp/chrono/system_clock/formatter
-// https://en.cppreference.com/w/cpp/chrono/utc_clock/formatter
-// Note: C++20 utc_clock is not quite implemented yet for gcc.
-// Parameter example: const auto start = std::chrono::system_clock::now();
-std::string format_timestamp(const std::chrono::system_clock::time_point ts)
-{
-  const std::uint64_t timestamp_ns =
-    std::chrono::duration_cast<std::chrono::nanoseconds>(ts.time_since_epoch()).count();
-  const std::uint64_t ns = timestamp_ns % 1000'000'000l;
-  return format("{0:%FT%T}.{1:09d}{0:%zZ}", ts, ns);
+/// simplify creating shared pointers to unordered maps
+// forces the use of an initialization list constructor
+// without this we get an ambiguous overload error
+// example: auto foo = make_shared_init_list<std::map<double,std::string>>({{1000, "hi"}});
+// https://stackoverflow.com/questions/36445642/initialising-stdshared-ptrstdmap-using-braced-init
+// https://stackoverflow.com/a/36446143/4560224
+// https://en.cppreference.com/w/cpp/utility/initializer_list
+// https://en.cppreference.com/w/cpp/language/list_initialization
+template<class Container>
+std::shared_ptr<Container>
+make_shared_init_list(std::initializer_list<typename Container::value_type> il) {
+    return std::make_shared<Container>(il);
 }
 
 // -----------------------------------------------------------------------------
@@ -190,6 +180,148 @@ get_output_filepath(const std::string_view directory = "<temp>"sv, const std::st
   const std::filesystem::path full_path      = directory_path/filename_path;
   std::clog << "INFO: setting gioppler log to " << full_path << std::endl;
   return std::make_unique<std::ofstream>(full_path, std::ios::trunc);
+}
+
+// -----------------------------------------------------------------------------
+/// Convert a time point into ISO-8601 string format.
+// https://en.wikipedia.org/wiki/ISO_8601
+// https://www.iso.org/obp/ui/#iso:std:iso:8601:-1:ed-1:v1:en
+// https://www.iso.org/obp/ui/#iso:std:iso:8601:-2:ed-1:v1:en
+// https://en.cppreference.com/w/cpp/chrono/system_clock/formatter
+// https://en.cppreference.com/w/cpp/chrono/utc_clock/formatter
+// Note: C++20 utc_clock is not quite implemented yet for gcc.
+// Parameter example: const auto start = std::chrono::system_clock::now();
+std::string format_timestamp(const std::chrono::system_clock::time_point ts)
+{
+  const std::uint64_t timestamp_ns =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(ts.time_since_epoch()).count();
+  const std::uint64_t ns = timestamp_ns % 1000'000'000l;
+  return format("{0:%FT%T}.{1:09d}{0:%zZ}", ts, ns);
+}
+
+// -----------------------------------------------------------------------------
+/// replacement for std::variant; eventually will be a wrapper
+// std::variant is currently broken
+// Error: Implicitly defined constructor deleted due to variant member
+// https://en.cppreference.com/w/cpp/utility/variant
+// https://stackoverflow.com/questions/53310690/implicitly-defined-constructor-deleted-due-to-variant-member-n3690-n4140-vs-n46
+// https://github.com/llvm/llvm-project/issues/39034
+// https://stackoverflow.com/questions/65404305/why-is-the-defaulted-default-constructor-deleted-for-a-union-or-union-like-class
+// https://stackoverflow.com/questions/63624014/why-does-clang-using-libstdc-delete-the-explicitly-defaulted-constructor-on
+class RecordValue
+{
+ public:
+  enum class RecordValueType {Boolean, Integer, Real, String, Timestamp};
+
+  // ---------------------------------------------------------------------------
+  RecordValue(const bool bool_value)
+  : _record_value_type(RecordValueType::Boolean), _bool_value(bool_value) { }
+
+  [[nodiscard]] bool get_bool() const {
+    assert(_record_value_type == RecordValueType::Boolean);
+    return _bool_value;
+  }
+
+  void set_bool(const bool bool_value) {
+    assert(_record_value_type == RecordValueType::Boolean);
+    _bool_value = bool_value;
+  }
+
+  // ---------------------------------------------------------------------------
+  RecordValue(const int64_t int_value)
+  : _record_value_type(RecordValueType::Integer), _int_value(int_value) { }
+
+  [[nodiscard]] int64_t get_int() const {
+    assert(_record_value_type == RecordValueType::Integer);
+    return _int_value;
+  }
+
+  void set_int(const int64_t int_value) {
+    assert(_record_value_type == RecordValueType::Integer);
+    _int_value = int_value;
+  }
+
+  // ---------------------------------------------------------------------------
+  RecordValue(const double real_value)
+  : _record_value_type(RecordValueType::Real), _real_value(real_value) { }
+
+  [[nodiscard]] double get_real() const {
+    assert(_record_value_type == RecordValueType::Real);
+    return _real_value;
+  }
+
+  void set_real(const double real_value) {
+    assert(_record_value_type == RecordValueType::Real);
+    _real_value = real_value;
+  }
+
+  // ---------------------------------------------------------------------------
+  RecordValue(std::string_view string_value)
+  : _record_value_type(RecordValueType::String), _string_value(string_value) { }
+
+  RecordValue(std::string string_value)
+  : _record_value_type(RecordValueType::String), _string_value(std::move(string_value)) { }
+
+  [[nodiscard]] std::string get_string() const {
+    assert(_record_value_type == RecordValueType::String);
+    return _string_value;
+  }
+
+  void set_string(std::string_view string_value) {
+    assert(_record_value_type == RecordValueType::String);
+    _string_value = string_value;
+  }
+
+  // ---------------------------------------------------------------------------
+  RecordValue(std::chrono::system_clock::time_point timestamp_value)
+  : _record_value_type(RecordValueType::Timestamp), _timestamp_value(timestamp_value) { }
+
+  [[nodiscard]] std::chrono::system_clock::time_point get_timestamp() const {
+    assert(_record_value_type == RecordValueType::Timestamp);
+    return _timestamp_value;
+  }
+
+  void set_timestamp(const std::chrono::system_clock::time_point timestamp_value) {
+    assert(_record_value_type == RecordValueType::Timestamp);
+    _timestamp_value = timestamp_value;
+  }
+
+ private:
+  RecordValueType _record_value_type;
+  bool _bool_value{};
+  int64_t _int_value{};
+  double _real_value{};
+  std::string _string_value{};
+  std::chrono::system_clock::time_point _timestamp_value{};
+};
+
+// -----------------------------------------------------------------------------
+/// Data being sent to a sink for processing.
+using Record = std::unordered_map<std::string, RecordValue>;
+
+// -----------------------------------------------------------------------------
+/// convert a source_location into a string
+std::string format_source_location(const std::source_location &location)
+{
+    std::string message =
+      format("{}({}:{}): {}",
+             location.file_name(),
+             location.line(),
+             location.column(),
+             location.function_name());
+    return message;
+}
+
+// -----------------------------------------------------------------------------
+/// convert a source_location into a string
+Record source_location_to_record(const std::source_location &location)
+{
+  return Record{
+      {"file", location.file_name()},
+      {"line", location.line()},
+      {"column", location.column()},
+      {"function", location.function_name()}
+  };
 }
 
 // -----------------------------------------------------------------------------

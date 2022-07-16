@@ -590,13 +590,13 @@ gioppler::set_subsystem(std::string_view subsystem);
 gioppler::set_client(std::string_view client_id);
 gioppler::set_request(std::string_view request_id);
 
-gioppler::all::certify(bool condition);
-gioppler::all::error(std::string_view message);
-gioppler::all::error(StringFunction message_function);
-gioppler::all::branch(std::string_view message);
-gioppler::all::branch(StringFunction message_function);
-gioppler::all::log(std::string_view message);
-gioppler::all::log(StringFunction message_function);
+gioppler::prod::certify(bool condition);
+gioppler::prod::error(std::string_view message);
+gioppler::prod::error(StringFunction message_function);
+gioppler::prod::branch(std::string_view message);
+gioppler::prod::branch(StringFunction message_function);
+gioppler::prod::log(std::string_view message);
+gioppler::prod::log(StringFunction message_function);
 
 === Test
 
@@ -659,3 +659,4 @@ https://www.ethicalads.io/
 https://readthedocs.org/
 https://www.sphinx-doc.org/
 https://github.com/bitprophet/alabaster
+https://frama-c.com/

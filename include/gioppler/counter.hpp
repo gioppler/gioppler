@@ -71,4 +71,9 @@ struct CounterFactory {
 }   // namespace gioppler
 
 // -----------------------------------------------------------------------------
+#if defined(GIOPPLER_PLATFORM_LINUX)
+#include "gioppler/linux/counter.hpp"
+#endif
+
+// -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_COUNTER_HPP

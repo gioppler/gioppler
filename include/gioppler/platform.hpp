@@ -27,13 +27,16 @@
 #error C++20 or newer support required to use this library.
 #endif
 
-// -----------------------------------------------------------------------------
+#include "gioppler/config.hpp"
+
 // -----------------------------------------------------------------------------
 extern std::string get_program_name();
 extern uint64_t get_process_id();
 
-
-
+// -----------------------------------------------------------------------------
+#if defined(GIOPPLER_PLATFORM_LINUX)
+#include "gioppler/linux/platform.hpp"
+#endif
 
 // -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_PLATFORM_HPP

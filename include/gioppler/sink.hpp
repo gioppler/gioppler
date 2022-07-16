@@ -46,7 +46,6 @@ using namespace std::chrono_literals;
 
 #include "gioppler/config.hpp"
 #include "gioppler/utility.hpp"
-#include "gioppler/contract.hpp"
 
 // -----------------------------------------------------------------------------
 namespace gioppler::sink {
@@ -61,12 +60,6 @@ namespace gioppler::sink {
 //   Unless std::ios_base::sync_with_stdio(false) has been issued,
 //   it is safe to concurrently access these objects from multiple threads for both formatted and unformatted output.
 //   Due to the overhead necessitated by thread-safety, no other stream objects are thread-safe by default.
-
-// -----------------------------------------------------------------------------
-/// Data being sent to a sink for processing.
-using Record = std::unordered_map<std::string,
-  std::variant<bool, int64_t, double, std::string, std::chrono::system_clock::time_point>>;
-enum class RecordIndex {boolean = 0, integer, real, string, timestamp};
 
 // -----------------------------------------------------------------------------
 struct Sink {
@@ -135,12 +128,11 @@ static inline SinkManager g_sink_manager{};
 // https://www.json.org/
 class Json : public Sink {
  public:
-  Json(std::string_view filepath = "") {
-    _output_stream = get_output_filepath(filepath, ".json");
+  Json(std::string_view filepath = "<current>"sv) {
+    _output_stream = get_output_filepath(filepath, "json"sv);
   }
 
-  ~Json() {
-  }
+  ~Json() override = default;
 
   /// add a new JSON format data record sink
   // Directory patterns:
@@ -150,15 +142,8 @@ class Json : public Sink {
     g_sink_manager.add_sink(std::make_unique<Json>(path));
   }
 
- private:
-  std::unique_ptr<std::ostream> _output_stream;
-  std::mutex _mutex;
-
-  bool is_record_filtered(const Record& record) {
-    return false;
-  }
-
-  bool write_record(std::shared_ptr<Record> record) {
+ protected:
+  bool write_record(std::shared_ptr<Record> record) override {
     if (is_record_filtered(*record)) {
       return false;
     }
@@ -195,7 +180,8 @@ class Json : public Sink {
         }
 
         case RecordIndex::timestamp: {
-          buffer << format("\"{}\":\"{}\"", key, format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+          buffer << format("\"{}\":\"{}\"", key,
+                           format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
           break;
         }
 
@@ -207,10 +193,117 @@ class Json : public Sink {
     return true;
   }
 
+ private:
+  std::unique_ptr<std::ostream> _output_stream;
+  std::mutex _mutex;
+
+  bool is_record_filtered(const Record& record) {
+    return false;
+  }
+
   void write_line(const std::string_view line) {
     _output_stream->write(line.data(), line.size());
   }
 };
+
+
+
+
+
+
+// -----------------------------------------------------------------------------
+/// log file destination using CSV format
+class Csv : public Sink {
+ public:
+  Csv(std::string_view filepath = "<current>"sv, std::vector<std::string> fields,
+      std::string_view separator, std::string_view string_quote_char)
+  : _fields(fields), _separator(separator), _string_quote_char(string_quote_char)
+  {
+    _output_stream = get_output_filepath(filepath, "txt");
+  }
+
+  ~Csv() override = default;
+
+  /// add a new CSV format data record sink
+  // Directory patterns:
+  //   <temp>, <current>, <home>   - optionally follow these with other directories
+  //   <cout>, <clog>, <cerr>      - these specify the entire path
+  static void add_sink(std::string_view filepath = "<current>"sv, std::vector<std::string> fields,
+    std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
+  {
+    g_sink_manager.add_sink(std::make_unique<Csv>(filepath, fields, separator, string_quote_char));
+  }
+
+ protected:
+  bool write_record(std::shared_ptr<Record> record) override {
+    if (is_record_filtered(*record)) {
+      return false;
+    }
+
+    std::stringstream buffer;
+
+    bool first_field = true;
+    for (const auto& [key, value] : *record) {
+      if (first_field) {
+        first_field = false;
+      } else {
+        buffer.put(',');
+      }
+
+      switch (RecordIndex(value.index())) {
+        case RecordIndex::boolean: {
+          buffer << format("\"{}\":{}", key, std::get<bool>(value));
+          break;
+        }
+
+        case RecordIndex::integer: {
+          buffer << format("\"{}\":{}", key, std::get<int64_t>(value));
+          break;
+        }
+
+        case RecordIndex::real: {
+          buffer << format("\"{}\":{}", key, std::get<double>(value));
+          break;
+        }
+
+        case RecordIndex::string: {
+          buffer << format("\"{}\":\"{}\"", key, std::get<std::string>(value));
+          break;
+        }
+
+        case RecordIndex::timestamp: {
+          buffer << format("\"{}\":\"{}\"", key,
+                           format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+          break;
+        }
+
+        default: contract::assert(false);
+      }
+    }
+
+    _output_stream->write(buffer.view().data(), buffer.view().size());
+    return true;
+  }
+
+ private:
+  std::unique_ptr<std::ostream> _output_stream;
+  std::mutex _mutex;
+  std::vector<std::string> _fields;
+  std::string_view _separator;
+  std::string_view _string_quote_char;
+
+  bool is_record_filtered(const Record& record) {
+    return false;
+  }
+
+  void write_line(const std::string_view line) {
+    _output_stream->write(line.data(), line.size());
+  }
+};
+
+
+
+
 
 // -----------------------------------------------------------------------------
 /// Create default sinks if write attempted and no sinks defined already

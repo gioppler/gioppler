@@ -20,21 +20,52 @@
 // SOFTWARE.
 
 #pragma once
-#ifndef GIOPPLER_GIOPPLER_HPP
-#define GIOPPLER_GIOPPLER_HPP
+#ifndef GIOPPLER_LINUX_PLATFORM_HPP
+#define GIOPPLER_LINUX_PLATFORM_HPP
 
 #if __cplusplus < 202002L
 #error C++20 or newer support required to use this library.
 #endif
 
-// -----------------------------------------------------------------------------
-#include "gioppler/config.hpp"
-#include "gioppler/platform.hpp"
-#include "gioppler/utility.hpp"
-#include "gioppler/sink.hpp"
-#include "gioppler/contract.hpp"
-#include "gioppler/histogram.hpp"
-
+#include <string>
 
 // -----------------------------------------------------------------------------
-#endif // defined GIOPPLER_GIOPPLER_HPP
+/// Program name
+#if defined(GIOPPLER_PLATFORM_LINUX)      // Linux kernel; could be GNU or Android
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <errno.h>
+namespace gioppler {
+std::string get_program_name()
+{
+  return program_invocation_short_name;
+}
+#else
+namespace gioppler {
+std::string get_program_name()
+{
+  return "unknown";
+}
+#endif
+
+// -----------------------------------------------------------------------------
+/// Process id
+#if defined(GIOPPLER_PLATFORM_LINUX)      // Linux kernel; could be GNU or Android
+#include <unistd.h>
+uint64_t get_process_id()
+{
+  return getpid();
+}
+#else
+uint64_t get_process_id()
+{
+  return 0;
+}
+#endif
+
+// -----------------------------------------------------------------------------
+}   // namespace gioppler
+
+// -----------------------------------------------------------------------------
+#endif // defined GIOPPLER_LINUX_PLATFORM_HPP

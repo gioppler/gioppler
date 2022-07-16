@@ -19,53 +19,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
-#ifndef GIOPPLER_LINUX_CONFIG_HPP
-#define GIOPPLER_LINUX_CONFIG_HPP
-
 #if __cplusplus < 202002L
 #error C++20 or newer support required to use this library.
 #endif
 
-#include <string>
+#include "gioppler/gioppler.hpp"
 
 // -----------------------------------------------------------------------------
-/// Program name
-#if defined(GIOPPLER_PLATFORM_LINUX)      // Linux kernel; could be GNU or Android
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1
-#endif
-#include <errno.h>
-namespace gioppler {
-std::string get_program_name()
-{
-  return program_invocation_short_name;
-}
-#else
-namespace gioppler {
-std::string get_program_name()
-{
-  return "unknown";
-}
-#endif
-
-// -----------------------------------------------------------------------------
-/// Process id
-#if defined(GIOPPLER_PLATFORM_LINUX)      // Linux kernel; could be GNU or Android
-#include <unistd.h>
-uint64_t get_process_id()
-{
-  return getpid();
-}
-#else
-uint64_t get_process_id()
-{
+int test(const int instance) {
+  // brainyguy::Function _{"test", 123, "hello"};
+  std::cerr << "inside test " << instance << std::endl;
+  if (instance > 1) {
+    test(instance - 1);
+  }
   return 0;
 }
-#endif
 
 // -----------------------------------------------------------------------------
-}   // namespace gioppler
-
-// -----------------------------------------------------------------------------
-#endif // defined GIOPPLER_LINUX_CONFIG_HPP
+int main() {
+  //const int t1_result = test();
+  std::thread t2 = std::thread(test, 1);
+  std::thread t3 = std::thread(test, 2);
+  std::thread t4 = std::thread(test, 3);
+  t2.join();
+  t3.join();
+  t4.join();
+}
