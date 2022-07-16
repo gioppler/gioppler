@@ -211,83 +211,90 @@ std::string format_timestamp(const std::chrono::system_clock::time_point ts)
 class RecordValue
 {
  public:
-  enum class RecordValueType {Boolean, Integer, Real, String, Timestamp};
+  enum class Type {Bool, Int, Real, String, Timestamp};
+
+  Type get_type() const {
+    return _record_value_type;
+  }
 
   // ---------------------------------------------------------------------------
   RecordValue(const bool bool_value)
-  : _record_value_type(RecordValueType::Boolean), _bool_value(bool_value) { }
+  : _record_value_type(Type::Bool), _bool_value(bool_value) { }
 
   [[nodiscard]] bool get_bool() const {
-    assert(_record_value_type == RecordValueType::Boolean);
+    assert(_record_value_type == Type::Bool);
     return _bool_value;
   }
 
   void set_bool(const bool bool_value) {
-    assert(_record_value_type == RecordValueType::Boolean);
+    assert(_record_value_type == Type::Bool);
     _bool_value = bool_value;
   }
 
   // ---------------------------------------------------------------------------
   RecordValue(const int64_t int_value)
-  : _record_value_type(RecordValueType::Integer), _int_value(int_value) { }
+  : _record_value_type(Type::Int), _int_value(int_value) { }
+
+  RecordValue(const uint32_t int_value)
+  : _record_value_type(Type::Int), _int_value(static_cast<int64_t>(int_value)) { }
 
   [[nodiscard]] int64_t get_int() const {
-    assert(_record_value_type == RecordValueType::Integer);
+    assert(_record_value_type == Type::Int);
     return _int_value;
   }
 
   void set_int(const int64_t int_value) {
-    assert(_record_value_type == RecordValueType::Integer);
+    assert(_record_value_type == Type::Int);
     _int_value = int_value;
   }
 
   // ---------------------------------------------------------------------------
   RecordValue(const double real_value)
-  : _record_value_type(RecordValueType::Real), _real_value(real_value) { }
+  : _record_value_type(Type::Real), _real_value(real_value) { }
 
   [[nodiscard]] double get_real() const {
-    assert(_record_value_type == RecordValueType::Real);
+    assert(_record_value_type == Type::Real);
     return _real_value;
   }
 
   void set_real(const double real_value) {
-    assert(_record_value_type == RecordValueType::Real);
+    assert(_record_value_type == Type::Real);
     _real_value = real_value;
   }
 
   // ---------------------------------------------------------------------------
   RecordValue(std::string_view string_value)
-  : _record_value_type(RecordValueType::String), _string_value(string_value) { }
+  : _record_value_type(Type::String), _string_value(string_value) { }
 
   RecordValue(std::string string_value)
-  : _record_value_type(RecordValueType::String), _string_value(std::move(string_value)) { }
+  : _record_value_type(Type::String), _string_value(std::move(string_value)) { }
 
   [[nodiscard]] std::string get_string() const {
-    assert(_record_value_type == RecordValueType::String);
+    assert(_record_value_type == Type::String);
     return _string_value;
   }
 
   void set_string(std::string_view string_value) {
-    assert(_record_value_type == RecordValueType::String);
+    assert(_record_value_type == Type::String);
     _string_value = string_value;
   }
 
   // ---------------------------------------------------------------------------
   RecordValue(std::chrono::system_clock::time_point timestamp_value)
-  : _record_value_type(RecordValueType::Timestamp), _timestamp_value(timestamp_value) { }
+  : _record_value_type(Type::Timestamp), _timestamp_value(timestamp_value) { }
 
   [[nodiscard]] std::chrono::system_clock::time_point get_timestamp() const {
-    assert(_record_value_type == RecordValueType::Timestamp);
+    assert(_record_value_type == Type::Timestamp);
     return _timestamp_value;
   }
 
   void set_timestamp(const std::chrono::system_clock::time_point timestamp_value) {
-    assert(_record_value_type == RecordValueType::Timestamp);
+    assert(_record_value_type == Type::Timestamp);
     _timestamp_value = timestamp_value;
   }
 
  private:
-  RecordValueType _record_value_type;
+  Type _record_value_type;
   bool _bool_value{};
   int64_t _int_value{};
   double _real_value{};

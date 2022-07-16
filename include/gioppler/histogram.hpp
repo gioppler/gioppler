@@ -62,7 +62,7 @@ public:
   Bucket()
     : _observation_min{}, _observation_span{}, _count{}
   {
-    contract::Invariant inv{std::function(invariant, this)};
+    contract::confirm(invariant());
   }
 
   explicit Bucket(const observation_t observation)
@@ -73,7 +73,7 @@ public:
 
   Bucket& operator +=(const Bucket& rhs)
   {
-    assert(invariant());
+    contract::Invariant temp{[this]{ return invariant(); }};
     const observation_t min = std::min(get_min(), rhs.get_min());
     const observation_t max = std::max(get_max(), rhs.get_max());
     _observation_min  = min;

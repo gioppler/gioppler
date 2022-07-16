@@ -27,6 +27,7 @@
 #error C++20 or newer support required to use this library.
 #endif
 
+#include <cassert>
 #include <chrono>
 #include <fstream>
 #include <functional>
@@ -128,7 +129,7 @@ static inline SinkManager g_sink_manager{};
 // https://www.json.org/
 class Json : public Sink {
  public:
-  Json(std::string_view filepath = "<current>"sv) {
+  explicit Json(std::string_view filepath) {
     _output_stream = get_output_filepath(filepath, "json"sv);
   }
 
@@ -158,34 +159,33 @@ class Json : public Sink {
         buffer.put(',');
       }
 
-      switch (RecordIndex(value.index())) {
-        case RecordIndex::boolean: {
-          buffer << format("\"{}\":{}", key, std::get<bool>(value));
+      switch (value.get_type()) {
+        case RecordValue::Type::Bool: {
+          buffer << format("\"{}\":{}", key, value.get_bool());
           break;
         }
 
-        case RecordIndex::integer: {
-          buffer << format("\"{}\":{}", key, std::get<int64_t>(value));
+        case RecordValue::Type::Int: {
+          buffer << format("\"{}\":{}", key, value.get_int());
           break;
         }
 
-        case RecordIndex::real: {
-          buffer << format("\"{}\":{}", key, std::get<double>(value));
+        case RecordValue::Type::Real: {
+          buffer << format("\"{}\":{}", key, value.get_real());
           break;
         }
 
-        case RecordIndex::string: {
-          buffer << format("\"{}\":\"{}\"", key, std::get<std::string>(value));
+        case RecordValue::Type::String: {
+          buffer << format("\"{}\":\"{}\"", key, value.get_string());
           break;
         }
 
-        case RecordIndex::timestamp: {
-          buffer << format("\"{}\":\"{}\"", key,
-                           format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+        case RecordValue::Type::Timestamp: {
+          buffer << format("\"{}\":\"{}\"", key, format_timestamp(value.get_timestamp()));
           break;
         }
 
-        default: contract::assert(false);
+        default: assert(false);
       }
     }
 
@@ -206,18 +206,13 @@ class Json : public Sink {
   }
 };
 
-
-
-
-
-
 // -----------------------------------------------------------------------------
 /// log file destination using CSV format
 class Csv : public Sink {
  public:
-  Csv(std::string_view filepath = "<current>"sv, std::vector<std::string> fields,
-      std::string_view separator, std::string_view string_quote_char)
-  : _fields(fields), _separator(separator), _string_quote_char(string_quote_char)
+  explicit Csv(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
+      std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
+  : _fields(std::move(fields)), _separator(separator), _string_quote_char(string_quote_char)
   {
     _output_stream = get_output_filepath(filepath, "txt");
   }
@@ -228,10 +223,10 @@ class Csv : public Sink {
   // Directory patterns:
   //   <temp>, <current>, <home>   - optionally follow these with other directories
   //   <cout>, <clog>, <cerr>      - these specify the entire path
-  static void add_sink(std::string_view filepath = "<current>"sv, std::vector<std::string> fields,
+  static void add_sink(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
     std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
   {
-    g_sink_manager.add_sink(std::make_unique<Csv>(filepath, fields, separator, string_quote_char));
+    g_sink_manager.add_sink(std::make_unique<Csv>(fields, filepath, separator, string_quote_char));
   }
 
  protected:
@@ -250,34 +245,33 @@ class Csv : public Sink {
         buffer.put(',');
       }
 
-      switch (RecordIndex(value.index())) {
-        case RecordIndex::boolean: {
-          buffer << format("\"{}\":{}", key, std::get<bool>(value));
+      switch (value.get_type()) {
+        case RecordValue::Type::Bool: {
+          buffer << format("\"{}\":{}", key, value.get_bool());
           break;
         }
 
-        case RecordIndex::integer: {
-          buffer << format("\"{}\":{}", key, std::get<int64_t>(value));
+        case RecordValue::Type::Int: {
+          buffer << format("\"{}\":{}", key, value.get_int());
           break;
         }
 
-        case RecordIndex::real: {
-          buffer << format("\"{}\":{}", key, std::get<double>(value));
+        case RecordValue::Type::Real: {
+          buffer << format("\"{}\":{}", key, value.get_real());
           break;
         }
 
-        case RecordIndex::string: {
-          buffer << format("\"{}\":\"{}\"", key, std::get<std::string>(value));
+        case RecordValue::Type::String: {
+          buffer << format("\"{}\":\"{}\"", key, value.get_string());
           break;
         }
 
-        case RecordIndex::timestamp: {
-          buffer << format("\"{}\":\"{}\"", key,
-                           format_timestamp(std::get<std::chrono::system_clock::time_point>(value)));
+        case RecordValue::Type::Timestamp: {
+          buffer << format("\"{}\":\"{}\"", key, format_timestamp(value.get_timestamp()));
           break;
         }
 
-        default: contract::assert(false);
+        default: assert(false);
       }
     }
 

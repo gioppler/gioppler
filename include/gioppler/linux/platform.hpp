@@ -41,31 +41,34 @@ std::string get_program_name()
 {
   return program_invocation_short_name;
 }
+}   // namespace gioppler
 #else
 namespace gioppler {
 std::string get_program_name()
 {
   return "unknown";
 }
+}   // namespace gioppler
 #endif
 
 // -----------------------------------------------------------------------------
 /// Process id
 #if defined(GIOPPLER_PLATFORM_LINUX)      // Linux kernel; could be GNU or Android
 #include <unistd.h>
+namespace gioppler {
 uint64_t get_process_id()
 {
   return getpid();
 }
+}   // namespace gioppler
 #else
+namespace gioppler {
 uint64_t get_process_id()
 {
   return 0;
 }
-#endif
-
-// -----------------------------------------------------------------------------
 }   // namespace gioppler
+#endif
 
 // -----------------------------------------------------------------------------
 #endif // defined GIOPPLER_LINUX_PLATFORM_HPP

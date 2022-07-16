@@ -30,8 +30,10 @@
 #include "gioppler/config.hpp"
 
 // -----------------------------------------------------------------------------
+namespace gioppler {
 extern std::string get_program_name();
 extern uint64_t get_process_id();
+}   // namespace gioppler
 
 // -----------------------------------------------------------------------------
 #if defined(GIOPPLER_PLATFORM_LINUX)

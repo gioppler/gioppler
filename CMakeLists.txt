@@ -50,33 +50,33 @@ target_include_directories(gioppler INTERFACE "$<BUILD_INTERFACE:${Gioppler_SOUR
 # ------------------------------------------------------------------------------
 file(GLOB TEST_SOURCE_LIST CONFIGURE_DEPENDS "${Gioppler_SOURCE_DIR}/test/*.cpp")
 add_executable(gioppler_test "${TEST_SOURCE_LIST}")
-target_include_directories(gioppler_test PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/test>)
+#target_include_directories(gioppler_test PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/test>)
 target_compile_options(gioppler_test PRIVATE -Werror -Wall)
-target_link_libraries(gioppler_test PUBLIC m)
+target_link_libraries(gioppler_test PRIVATE m)
 target_link_libraries(gioppler_test PRIVATE gioppler)
 
 # ------------------------------------------------------------------------------
 file(GLOB SIMPLE_SOURCE_LIST CONFIGURE_DEPENDS "${Gioppler_SOURCE_DIR}/sample/simple.cpp")
 add_executable(simple "${SIMPLE_SOURCE_LIST}")
-target_include_directories(simple PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
+#target_include_directories(simple PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
 target_compile_options(simple PRIVATE -Werror -Wall)
-target_link_libraries(simple PUBLIC m)
+target_link_libraries(simple PRIVATE m)
 target_link_libraries(simple PRIVATE gioppler)
 
 # ------------------------------------------------------------------------------
 file(GLOB MAT_MULT_SOURCE_LIST CONFIGURE_DEPENDS "${Gioppler_SOURCE_DIR}/sample/matrix_mult.cpp")
 add_executable(matrix_mult "${MAT_MULT_SOURCE_LIST}")
-target_include_directories(matrix_mult PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
+#target_include_directories(matrix_mult PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
 target_compile_options(matrix_mult PRIVATE -Werror -Wall)
-target_link_libraries(matrix_mult PUBLIC m)
+target_link_libraries(matrix_mult PRIVATE m)
 target_link_libraries(matrix_mult PRIVATE gioppler)
 
 # ------------------------------------------------------------------------------
 file(GLOB THREADS_SOURCE_LIST CONFIGURE_DEPENDS "${Gioppler_SOURCE_DIR}/sample/threads.cpp")
 add_executable(threads "${THREADS_SOURCE_LIST}")
-target_include_directories(threads PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
+#target_include_directories(threads PUBLIC $<BUILD_INTERFACE:${Gioppler_SOURCE_DIR}/sample>)
 target_compile_options(threads PRIVATE -Werror -Wall)
-target_link_libraries(threads PUBLIC m)
+target_link_libraries(threads PRIVATE m)
 target_link_libraries(threads PRIVATE gioppler)
 
 # ------------------------------------------------------------------------------

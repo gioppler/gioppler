@@ -133,15 +133,22 @@ void confirm(const bool condition,
 }
 
 // -----------------------------------------------------------------------------
+// turn off pesky warning about throwing from inside a catch clause
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wterminate"
+
+// -----------------------------------------------------------------------------
 /// invariant condition to check on scope entry and exit
 class Invariant {
  public:
+  Invariant() = delete;
+
   // check invariant on scope entry
-  Invariant(std::function<bool()> condition_function,
+  explicit Invariant(std::function<bool()> condition_function,
             [[maybe_unused]] const std::source_location &source_location =
               std::source_location::current())
   : _uncaught_exceptions(std::uncaught_exceptions()),
-    _condition_function(condition_function),
+    _condition_function(std::move(condition_function)),
     _source_location(source_location)
   {
     if (!_condition_function()) [[unlikely]] {
@@ -196,11 +203,13 @@ class Invariant {
 /// ensure postcondition to check on scope exit
 class Ensure {
  public:
-  Ensure(std::function<bool()> condition_function,
+  Ensure() = delete;
+
+  explicit Ensure(std::function<bool()> condition_function,
          [[maybe_unused]] const std::source_location &source_location =
           std::source_location::current())
   : _uncaught_exceptions(std::uncaught_exceptions()),
-    _condition_function(condition_function),
+    _condition_function(std::move(condition_function)),
     _source_location(source_location)
   { }
 
@@ -236,6 +245,10 @@ class Ensure {
   std::function<bool()> _condition_function;
   std::source_location _source_location;
 };
+
+// -----------------------------------------------------------------------------
+// restore previous diagnostic settings
+#pragma GCC diagnostic pop
 
 // -----------------------------------------------------------------------------
 }   // namespace gioppler::contract
