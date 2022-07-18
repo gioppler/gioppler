@@ -73,7 +73,7 @@ public:
 
   Bucket& operator +=(const Bucket& rhs)
   {
-    contract::Invariant temp{[this]{ return invariant(); }};
+    contract::Invariant _{[this]{ return invariant(); }};
     const observation_t min = std::min(get_min(), rhs.get_min());
     const observation_t max = std::max(get_max(), rhs.get_max());
     _observation_min  = min;

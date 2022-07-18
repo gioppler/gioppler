@@ -137,7 +137,6 @@ https://cmocka.org/
 #ifdef __cplusplus
 #if defined(__clang__)
 
-
 #define START_TEST(__testname)\
 static void __testname ## _fn (int _i CK_ATTRIBUTE_UNUSED);\
 static const TTest __testname ## _ttest = {""# __testname, __testname ## _fn, __FILE__, __LINE__};\

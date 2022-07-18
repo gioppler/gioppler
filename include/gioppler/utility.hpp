@@ -183,6 +183,15 @@ get_output_filepath(const std::string_view directory = "<temp>"sv, const std::st
 }
 
 // -----------------------------------------------------------------------------
+using timestamp_t = std::chrono::system_clock::time_point;
+
+// -----------------------------------------------------------------------------
+/// returns the current timestamp
+timestamp_t now() {
+  return std::chrono::system_clock::now();
+}
+
+// -----------------------------------------------------------------------------
 /// Convert a time point into ISO-8601 string format.
 // https://en.wikipedia.org/wiki/ISO_8601
 // https://www.iso.org/obp/ui/#iso:std:iso:8601:-1:ed-1:v1:en
@@ -191,7 +200,7 @@ get_output_filepath(const std::string_view directory = "<temp>"sv, const std::st
 // https://en.cppreference.com/w/cpp/chrono/utc_clock/formatter
 // Note: C++20 utc_clock is not quite implemented yet for gcc.
 // Parameter example: const auto start = std::chrono::system_clock::now();
-std::string format_timestamp(const std::chrono::system_clock::time_point ts)
+std::string format_timestamp(const timestamp_t ts)
 {
   const std::uint64_t timestamp_ns =
     std::chrono::duration_cast<std::chrono::nanoseconds>(ts.time_since_epoch()).count();
@@ -280,15 +289,15 @@ class RecordValue
   }
 
   // ---------------------------------------------------------------------------
-  RecordValue(std::chrono::system_clock::time_point timestamp_value)
+  RecordValue(timestamp_t timestamp_value)
   : _record_value_type(Type::Timestamp), _timestamp_value(timestamp_value) { }
 
-  [[nodiscard]] std::chrono::system_clock::time_point get_timestamp() const {
+  [[nodiscard]] timestamp_t get_timestamp() const {
     assert(_record_value_type == Type::Timestamp);
     return _timestamp_value;
   }
 
-  void set_timestamp(const std::chrono::system_clock::time_point timestamp_value) {
+  void set_timestamp(const timestamp_t timestamp_value) {
     assert(_record_value_type == Type::Timestamp);
     _timestamp_value = timestamp_value;
   }
@@ -299,12 +308,60 @@ class RecordValue
   int64_t _int_value{};
   double _real_value{};
   std::string _string_value{};
-  std::chrono::system_clock::time_point _timestamp_value{};
+  timestamp_t _timestamp_value{};
 };
 
 // -----------------------------------------------------------------------------
 /// Data being sent to a sink for processing.
 using Record = std::unordered_map<std::string, RecordValue>;
+
+// -----------------------------------------------------------------------------
+// Data Dictionary:
+// - core.process.name      - string    - system process name
+// - core.process.id        - integer   - system process id
+// - core.thread.id         - integer   - system thread id
+// - core.timestamp         - timestamp - when event occurred
+// - core.build_mode        - string    - dev, test, prof, qa, prod
+// - core.event             - string    - depends on build_mode
+// - core.subsystem         - string    - user-supplied subsystem name
+// - core.client            - string    - user-supplied client id
+// - core.request           - string    - user-supplied request id
+// - core.file              - string    - source file name and path
+// - core.line              - int       - line number
+// - core.column            - int       - column number
+// - core.function          - string    - function name and signature
+// - core.parent_function   - string    - parent (calling) function name and signature
+
+// Linux Performance Counters: (category=profile)
+// - prof.count             - integer   - number of times the function was called
+// - prof.workload          - real      - user-assigned weight to profiled function calls
+
+// All of these have two versions:
+// - *.total                - sum of the function and other functions it calls
+// - *.self                 - sum of only the function, excluding other functions called
+
+// - prof.sw.duration            - real      - real (wall clock) duration (secs)
+// - prof.sw.cpu_clock           - real      - CPU clock, a high-resolution per-CPU timer. (secs)
+// - prof.sw.task_clock          - real      - clock count specific to the task that is running. (secs)
+// - prof.sw.page_faults         - integer   - number of page faults
+// - prof.sw.context_switches    - integer   - counts context switches
+// - prof.sw.cpu_migrations      - integer   - number of times the process has migrated to a new CPU.
+// - prof.sw.page_faults_min     - integer   - number of minor page faults.
+// - prof.sw.page_faults_maj     - integer   - number of major page faults. These required disk I/O to handle.
+// - prof.sw.alignment_faults    - integer   - counts the number of alignment faults. Zero on x86.
+// - prof.sw.emulation_faults    - integer   - counts the number of emulation faults.
+
+// - prof.hw.cpu_cycles          - integer   - Total cycles
+// - prof.hw.instructions        - integer   - Retired instructions (i.e., executed)
+// - prof.hw.stall_cycles_front  - integer   - Stalled cycles during issue in the frontend
+// - prof.hw.stall_cycles_back   - integer   - Stalled cycles during retirement in the backend
+
+// - prof.hw.cache_references    - integer   - Cache accesses.  Usually this indicates Last Level Cache accesses.
+// - prof.hw.cache_misses        - integer   - Cache misses.  Usually this indicates Last Level Cache misses.
+
+// - prof.hw.branch_instructions - integer   - Retired branch instructions (i.e., executed)
+// - prof.hw.branch_misses       - integer   - Mispredicted branch instructions.
+
 
 // -----------------------------------------------------------------------------
 /// convert a source_location into a string

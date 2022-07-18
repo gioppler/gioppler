@@ -247,7 +247,7 @@ class Ensure {
 };
 
 // -----------------------------------------------------------------------------
-// restore previous diagnostic settings
+// restore diagnostic settings
 #pragma GCC diagnostic pop
 
 // -----------------------------------------------------------------------------

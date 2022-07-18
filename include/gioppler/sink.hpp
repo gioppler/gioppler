@@ -211,8 +211,8 @@ class Json : public Sink {
 class Csv : public Sink {
  public:
   explicit Csv(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
-      std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
-  : _fields(std::move(fields)), _separator(separator), _string_quote_char(string_quote_char)
+      const bool header = true, std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
+  : _fields(std::move(fields)), _header(header), _separator(separator), _string_quote_char(string_quote_char)
   {
     _output_stream = get_output_filepath(filepath, "txt");
   }
@@ -224,9 +224,9 @@ class Csv : public Sink {
   //   <temp>, <current>, <home>   - optionally follow these with other directories
   //   <cout>, <clog>, <cerr>      - these specify the entire path
   static void add_sink(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
-    std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
+    const bool header = true, std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
   {
-    g_sink_manager.add_sink(std::make_unique<Csv>(fields, filepath, separator, string_quote_char));
+    g_sink_manager.add_sink(std::make_unique<Csv>(fields, filepath, header, separator, string_quote_char));
   }
 
  protected:
@@ -283,6 +283,7 @@ class Csv : public Sink {
   std::unique_ptr<std::ostream> _output_stream;
   std::mutex _mutex;
   std::vector<std::string> _fields;
+  bool _header;
   std::string_view _separator;
   std::string_view _string_quote_char;
 
