@@ -579,10 +579,11 @@ gioppler::dev::warning(std::string_view filter, std::string_view message);
 gioppler::dev::warning(std::string_view filter, StringFunction message_function);
 gioppler::dev::breakpoint(std::string_view filter);
 
-gioppler::Profile profile(std::string_view filter, double workload = 0);
+gioppler::prof::Function function(std::string_view filter, double workload = 0);
+gioppler::prof::Block block(std::string_view filter, double workload = 0);
 
-gioppler::test(std::string_view filter, std::string_view test_name, test);
-gioppler::benchmark(std::string_view filter, std::string_view benchmark_name, benchmark);
+gioppler::test::test(std::string_view filter, std::string_view test_name, test);
+gioppler::test::benchmark(std::string_view filter, std::string_view benchmark_name, benchmark);
 
 // these are always enabled
 gioppler::set_subsystem(std::string_view subsystem);

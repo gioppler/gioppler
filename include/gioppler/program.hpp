@@ -20,23 +20,42 @@
 // SOFTWARE.
 
 #pragma once
-#ifndef GIOPPLER_GIOPPLER_HPP
-#define GIOPPLER_GIOPPLER_HPP
+#ifndef GIOPPLER_PROGRAM_HPP
+#define GIOPPLER_PROGRAM_HPP
 
 #if __cplusplus < 202002L
 #error C++20 or newer support required to use this library.
 #endif
 
-// -----------------------------------------------------------------------------
-#include "gioppler/config.hpp"
-#include "gioppler/platform.hpp"
+#include <chrono>
+#include <mutex>
+
 #include "gioppler/utility.hpp"
-#include "gioppler/record.hpp"
-#include "gioppler/sink.hpp"
-#include "gioppler/contract.hpp"
-#include "gioppler/histogram.hpp"
-#include "gioppler/program.hpp"
-#include "gioppler/thread.hpp"
 
 // -----------------------------------------------------------------------------
-#endif // defined GIOPPLER_GIOPPLER_HPP
+namespace gioppler {
+
+// -----------------------------------------------------------------------------
+class Program {
+ public:
+  Program() : _start{now()} { }
+
+  ~Program() {
+    const Timestamp end = now();
+    const TimestampDiff diff = end - _start;
+    double _duration_secs = diff.count();
+    // ...
+  }
+
+ private:
+  const Timestamp _start;
+};
+
+// -----------------------------------------------------------------------------
+static inline Program g_program{};
+
+// -----------------------------------------------------------------------------
+}   // namespace gioppler
+
+// -----------------------------------------------------------------------------
+#endif // defined GIOPPLER_PROGRAM_HPP

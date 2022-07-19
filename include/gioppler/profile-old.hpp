@@ -54,86 +54,6 @@
 // -----------------------------------------------------------------------------
 namespace gioppler {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-class Program {
- public:
-  Program() {
-    _start = std::chrono::steady_clock::now();
-  }
-
-  ~Program() {
-    const std::chrono::time_point<std::chrono::steady_clock> end = std::chrono::steady_clock::now();
-    std::chrono::duration<double> diff = end - _start;
-    _duration_secs = diff.count();
-  }
-
-  static void check_create() {
-    std::call_once(_once_flag_create, call_once_create);
-  }
-
-  static void check_destroy() {
-    std::call_once(_once_flag_destroy, call_once_destroy);
-  }
-
- private:
-  static inline std::once_flag _once_flag_create, _once_flag_destroy;
-  static inline Program *_p_program;
-  std::chrono::time_point<std::chrono::steady_clock> _start;
-  static double _duration_secs;   // program duration
-
-  static void call_once_create() {
-    _p_program = new Program;
-  }
-
-  static void call_once_destroy() {
-    delete _p_program;
-    _p_program = nullptr;
-  }
-};
-
-// ---------------------------------------------------------------------------
-class Thread {
- public:
-  explicit Thread() {
-    const uint_fast64_t prev_threads_created = std::atomic_fetch_add(&_threads_created, 1);
-    _thread_id = prev_threads_created + 1;
-    std::atomic_fetch_add(&_threads_active, 1);
-  }
-
-  ~Thread() {
-    std::atomic_fetch_sub(&_threads_active, 1);
-  }
-
-  static void check_create() {
-    if (_p_thread == nullptr) {
-      _p_thread = new Thread;
-    }
-  }
-
-  static void destroy() {
-    delete _p_thread;
-    _p_thread = nullptr;
-  }
-
-  static bool all_threads_done() {
-    return _threads_active == 0;
-  }
-
-  uint64_t get_id() {
-    return _thread_id;
-  }
-
- private:
-  static thread_local inline Thread
-  *
-  _p_thread;
-  static inline std::atomic_uint_fast64_t _threads_created;
-  static inline std::atomic_uint_fast64_t _threads_active;
-  uint_fast64_t _thread_id;
-  LinuxEvents _linux_events;
-};
-
 // ---------------------------------------------------------------------------
 class ProfileData {
  public:
@@ -190,7 +110,7 @@ class ProfileData {
   LinuxEventsData _linux_event_data_self;
 };
 
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 template<BuildMode build_mode = g_build_mode>
 class Function {
  public:

@@ -20,23 +20,55 @@
 // SOFTWARE.
 
 #pragma once
-#ifndef GIOPPLER_GIOPPLER_HPP
-#define GIOPPLER_GIOPPLER_HPP
+#ifndef GIOPPLER_THREAD_HPP
+#define GIOPPLER_THREAD_HPP
 
 #if __cplusplus < 202002L
 #error C++20 or newer support required to use this library.
 #endif
 
-// -----------------------------------------------------------------------------
-#include "gioppler/config.hpp"
-#include "gioppler/platform.hpp"
+#include <atomic>
+#include <chrono>
+#include <mutex>
+
 #include "gioppler/utility.hpp"
-#include "gioppler/record.hpp"
-#include "gioppler/sink.hpp"
-#include "gioppler/contract.hpp"
-#include "gioppler/histogram.hpp"
 #include "gioppler/program.hpp"
-#include "gioppler/thread.hpp"
 
 // -----------------------------------------------------------------------------
-#endif // defined GIOPPLER_GIOPPLER_HPP
+namespace gioppler {
+
+// -----------------------------------------------------------------------------
+class Thread {
+ public:
+  Thread() {
+    const uint_fast64_t prev_threads_created = std::atomic_fetch_add(&_threads_created, 1);
+    _thread_id = prev_threads_created + 1;
+    std::atomic_fetch_add(&_threads_active, 1);
+  }
+
+  ~Thread() {
+    std::atomic_fetch_sub(&_threads_active, 1);
+  }
+
+  static bool all_threads_done() {
+    return _threads_active == 0;
+  }
+
+  uint64_t get_id() {
+    return _thread_id;
+  }
+
+ private:
+  static inline std::atomic_uint_fast64_t _threads_created;
+  static inline std::atomic_uint_fast64_t _threads_active;
+  uint_fast64_t _thread_id;
+};
+
+// -----------------------------------------------------------------------------
+static inline thread_local Thread g_thread{};
+
+// -----------------------------------------------------------------------------
+}   // namespace gioppler
+
+// -----------------------------------------------------------------------------
+#endif // defined GIOPPLER_THREAD_HPP

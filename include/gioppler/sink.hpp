@@ -189,20 +189,18 @@ class Json : public Sink {
       }
     }
 
+    buffer.put('\n');
     _output_stream->write(buffer.view().data(), buffer.view().size());
-    return true;
+    return true;   // record was not filtered and it was written out
   }
 
  private:
   std::unique_ptr<std::ostream> _output_stream;
   std::mutex _mutex;
 
+  /// Skip writing this record due to filter conditions for sink?
   bool is_record_filtered(const Record& record) {
     return false;
-  }
-
-  void write_line(const std::string_view line) {
-    _output_stream->write(line.data(), line.size());
   }
 };
 
@@ -211,10 +209,11 @@ class Json : public Sink {
 class Csv : public Sink {
  public:
   explicit Csv(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
-      const bool header = true, std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
-  : _fields(std::move(fields)), _header(header), _separator(separator), _string_quote_char(string_quote_char)
+      const bool header = true, std::string_view separator = ","sv, std::string_view string_quote = "\""sv)
+  : _fields(std::move(fields)), _header(header), _separator(separator), _string_quote(string_quote)
   {
     _output_stream = get_output_filepath(filepath, "txt");
+    if (_header)   add_header();
   }
 
   ~Csv() override = default;
@@ -224,12 +223,28 @@ class Csv : public Sink {
   //   <temp>, <current>, <home>   - optionally follow these with other directories
   //   <cout>, <clog>, <cerr>      - these specify the entire path
   static void add_sink(std::vector<std::string> fields, std::string_view filepath = "<current>"sv,
-    const bool header = true, std::string_view separator = ","sv, std::string_view string_quote_char = "\""sv)
+    const bool header = true, std::string_view separator = ","sv, std::string_view string_quote = "\""sv)
   {
-    g_sink_manager.add_sink(std::make_unique<Csv>(fields, filepath, header, separator, string_quote_char));
+    g_sink_manager.add_sink(std::make_unique<Csv>(fields, filepath, header, separator, string_quote));
   }
 
  protected:
+  /// Add a first line header with the field names, if the option is enabled.
+  // Guaranteed to happen before sink is enabled, so no need to buffer the output.
+  void add_header() {
+    bool first_field = true;
+    for (const auto& field : _fields) {
+      if (first_field) {
+        first_field = false;
+      } else {
+        _output_stream->write(_separator.data(), static_cast<std::streamsize>(_separator.size()));
+      }
+
+      _output_stream->write(field.data(), field.size());
+    }
+    _output_stream->put('\n');
+  }
+
   bool write_record(std::shared_ptr<Record> record) override {
     if (is_record_filtered(*record)) {
       return false;
@@ -242,32 +257,32 @@ class Csv : public Sink {
       if (first_field) {
         first_field = false;
       } else {
-        buffer.put(',');
+        buffer.write(_separator.data(), static_cast<std::streamsize>(_separator.size()));
       }
 
       switch (value.get_type()) {
         case RecordValue::Type::Bool: {
-          buffer << format("\"{}\":{}", key, value.get_bool());
+          buffer << format("{}", value.get_bool());
           break;
         }
 
         case RecordValue::Type::Int: {
-          buffer << format("\"{}\":{}", key, value.get_int());
+          buffer << format("{}", value.get_int());
           break;
         }
 
         case RecordValue::Type::Real: {
-          buffer << format("\"{}\":{}", key, value.get_real());
+          buffer << format("{}", value.get_real());
           break;
         }
 
         case RecordValue::Type::String: {
-          buffer << format("\"{}\":\"{}\"", key, value.get_string());
+          buffer << format("{0}{1}{0}", _string_quote, value.get_string());
           break;
         }
 
         case RecordValue::Type::Timestamp: {
-          buffer << format("\"{}\":\"{}\"", key, format_timestamp(value.get_timestamp()));
+          buffer << format("{0}{1}{0}", _string_quote, format_timestamp(value.get_timestamp()));
           break;
         }
 
@@ -275,6 +290,7 @@ class Csv : public Sink {
       }
     }
 
+    buffer.put('\n');
     _output_stream->write(buffer.view().data(), buffer.view().size());
     return true;
   }
@@ -285,20 +301,12 @@ class Csv : public Sink {
   std::vector<std::string> _fields;
   bool _header;
   std::string_view _separator;
-  std::string_view _string_quote_char;
+  std::string_view _string_quote;
 
   bool is_record_filtered(const Record& record) {
     return false;
   }
-
-  void write_line(const std::string_view line) {
-    _output_stream->write(line.data(), line.size());
-  }
 };
-
-
-
-
 
 // -----------------------------------------------------------------------------
 /// Create default sinks if write attempted and no sinks defined already
