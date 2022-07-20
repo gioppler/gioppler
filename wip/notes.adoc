@@ -358,10 +358,18 @@ http://sandsoftwaresound.net/perf/perf-tut-profile-hw-events/
 == C++ logging libraries
 https://github.com/gabime/spdlog/wiki/Default-logger
 https://github.com/amrayn/easyloggingpp
-https://github.com/SergiusTheBest/plog
 https://github.com/emilk/loguru
 https://logging.apache.org/log4cxx/latest_stable/
 https://github.com/google/glog
+https://github.com/MengRao/fmtlog
+https://github.com/PlatformLab/NanoLog
+https://levelup.gitconnected.com/modern-c-logging-with-plog-and-fmt-format-1397ab4e2350
+https://github.com/SergiusTheBest/plog
+https://github.com/catchorg/Catch2
+https://github.com/doctest/doctest
+https://github.com/cppfw/tst
+https://github.com/boost-ext/ut
+https://cucumber.io/docs/gherkin/reference/
 
 == Robust Statistics
 https://en.wikipedia.org/wiki/Robust_statistics
