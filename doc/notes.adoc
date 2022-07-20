@@ -285,10 +285,21 @@ bg_test_suite_setup(suite, code)
 bg_test(suite, name, code)
 
 == Windows Performance Counters
+Note: They are not appropriate for high-frequency data collection or for application profiling since they are not designed to be collected more than once per second.
 https://docs.microsoft.com/en-us/windows/win32/perfctrs/performance-counters-portal
 https://docs.microsoft.com/en-us/windows/win32/perfctrs/consuming-counter-data
 https://docs.microsoft.com/en-us/windows/win32/perfctrs/using-the-pdh-functions-to-consume-counter-data
 https://docs.microsoft.com/en-us/windows/win32/perfctrs/using-the-perflib-functions-to-consume-counter-data
+
+== Windows Hardware Counter Profiling
+Note: Useful for profiling applications.
+https://docs.microsoft.com/en-us/previous-versions/windows/desktop/hcp/hcp-reference
+https://docs.microsoft.com/en-us/previous-versions/windows/desktop/hcp/hcp-functions
+https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readthreadprofilingdata
+https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-performance_data
+https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-enablethreadprofiling
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/nf-ntddk-kesethardwarecounterconfiguration
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/ns-ntddk-_hardware_counter
 
 == Assertions/Debugging code philosophy
 

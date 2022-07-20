@@ -32,6 +32,7 @@
 #include "gioppler/platform.hpp"
 #include "gioppler/utility.hpp"
 #include "gioppler/record.hpp"
+#include "gioppler/counter.hpp"
 #include "gioppler/sink.hpp"
 #include "gioppler/contract.hpp"
 #include "gioppler/histogram.hpp"

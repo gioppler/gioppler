@@ -36,6 +36,14 @@
 namespace gioppler {
 
 // -----------------------------------------------------------------------------
+/// function to call on program exit
+// https://en.cppreference.com/w/cpp/utility/program/exit
+// https://en.cppreference.com/w/cpp/utility/program/quick_exit
+// https://en.cppreference.com/w/cpp/error/terminate
+// https://en.cppreference.com/w/cpp/utility/program/signal
+extern void gioppler_exit();
+
+// -----------------------------------------------------------------------------
 class Program {
  public:
   Program() : _start{now()} { }

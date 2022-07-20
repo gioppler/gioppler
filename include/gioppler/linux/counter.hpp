@@ -141,6 +141,14 @@ class LinuxEvent {
   std::string_view _name1, _name2, _name3, _name4;
   int _fd1, _fd2, _fd3, _fd4;
 
+  struct ReadData {
+    uint64_t value;         /* The value of the event */
+    uint64_t time_enabled;  /* if PERF_FORMAT_TOTAL_TIME_ENABLED */
+    uint64_t time_running;  /* if PERF_FORMAT_TOTAL_TIME_RUNNING */
+  };
+
+  // measures the calling process/thread on any CPU
+  // state saved/restored on context switch
   static int perf_event_open(struct perf_event_attr *hw_event, pid_t pid, int cpu,
                              int group_fd, unsigned long flags) {
     return static_cast<int>(syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags));
@@ -155,6 +163,7 @@ class LinuxEvent {
       .disabled = 1;
       .exclude_kernel = 1;
       .exclude_hv = 1;
+      .read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
     };
 
     const int fd = perf_event_open(&perf_event_attr, 0, -1, group_fd, 0);
@@ -198,14 +207,19 @@ class LinuxEvent {
     }
   }
 
+  /// read the counter value
+  // the value is scaled to account for performance counter multiplexing
   static uint64_t read_event(const std::string_view name, const int fd) {
-    uint64_t count;
-    const ssize_t bytes_read = read(fd, &count, sizeof(count));
+    ReadData read_data{};
+    const ssize_t bytes_read = read(fd, &read_data, sizeof(read_data));
     if (bytes_read == -1) {
       std::cerr << "ERROR: LinuxEvent::read_event: " << name << ": " << std::strerror(errno) << std::endl;
       std::exit(EXIT_FAILURE);
     }
-    return count;
+
+    const double active_pct = static_cast<double>(read_data.time_running) / static_cast<double>(read_data.time_enabled);
+    const uint64_t scaled_counter = static_cast<uint64_t>(static_cast<double>(read_data.value) * (1.0 / active_pct));
+    return scaled_counter;
   }
 };
 

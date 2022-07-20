@@ -86,8 +86,8 @@ namespace gioppler {
 // - prof.hw.stall_cycles_front  - integer   - Stalled cycles during issue in the frontend
 // - prof.hw.stall_cycles_back   - integer   - Stalled cycles during retirement in the backend
 
-// - prof.hw.cache_references    - integer   - Cache accesses.  Usually this indicates Last Level Cache accesses.
-// - prof.hw.cache_misses        - integer   - Cache misses.  Usually this indicates Last Level Cache misses.
+// - prof.hw.cache_references    - integer   - Cache accesses. Usually this indicates Last Level Cache accesses.
+// - prof.hw.cache_misses        - integer   - Cache misses. Usually this indicates Last Level Cache misses.
 
 // - prof.hw.branch_instructions - integer   - Retired branch instructions (i.e., executed)
 // - prof.hw.branch_misses       - integer   - Mispredicted branch instructions.

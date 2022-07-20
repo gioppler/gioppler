@@ -45,30 +45,38 @@ struct CounterData {
     return lhs;
   }
 
-  virtual std::unique_ptr<sink::Record> create_record() = 0;
+  virtual std::unique_ptr<Record> get_record() = 0;
 };
 
 // -----------------------------------------------------------------------------
 struct Counter {
-  virtual ~Counter() = default;
-
-  virtual void start() = 0;
-  virtual void stop() = 0;
-
   virtual void enter_child() = 0;
   virtual void exit_child() = 0;
 
   virtual std::unique_ptr<CounterData> get_data() = 0;
+  virtual ~Counter() = 0;
 };
+
+// -----------------------------------------------------------------------------
+std::unordered_map<std::string, uint64_t> counter_value;
 
 // -----------------------------------------------------------------------------
 struct CounterFactory {
   virtual ~CounterFactory() = default;
-  virtual std::unique_ptr<Counter> create_counter() = 0;
+  virtual std::unique_ptr<Counter> read_counter() = 0;
 };
 
 // -----------------------------------------------------------------------------
+// defined in platform file:
+// static inline std::unique_ptr<CounterFactory> g_counter_factory;
+
+// -----------------------------------------------------------------------------
 }   // namespace gioppler
+
+// -----------------------------------------------------------------------------
+#if defined(GIOPPLER_PLATFORM_LINUX)
+#include "gioppler/linux/counter.hpp"
+#endif
 
 // -----------------------------------------------------------------------------
 #if defined(GIOPPLER_PLATFORM_LINUX)
