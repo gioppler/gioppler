@@ -1,0 +1,4 @@
+== Work in Progress
+This directory is for ideas and code that are not quite ready for "prime time." The `notes.adoc` file is is a dump of all the ideas and links I have related to the project. Think of it as a free-form notebook where I just take random notes.
+
+The `experiments` subdirectory is, similarly, a place to try out code ideas. Most of these have already made their way into the main project.
