@@ -496,7 +496,7 @@ private:
   {
     compact_buckets();
     static constexpr double iqr_unbiased = 1.35623115191269; // 2*sqrt(2)*erfc(0.5)
-    return get_interquantile_range() / iqr_unbiased;
+    return static_cast<double>(get_interquantile_range()) / iqr_unbiased;
   }
 };
 

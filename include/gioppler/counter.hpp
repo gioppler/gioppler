@@ -49,9 +49,15 @@ struct CounterData {
 };
 
 // -----------------------------------------------------------------------------
-struct Counter {
-  virtual void enter_child() = 0;
-  virtual void exit_child() = 0;
+class Counter {
+
+  void enter_child() {
+
+  }
+
+  void exit_child() {
+
+  }
 
   virtual std::unique_ptr<CounterData> get_data() = 0;
   virtual ~Counter() = 0;
@@ -61,22 +67,26 @@ struct Counter {
 std::unordered_map<std::string, uint64_t> counter_value;
 
 // -----------------------------------------------------------------------------
-struct CounterFactory {
+class CounterFactory {
+ public:
+  CounterFactory() = default;
   virtual ~CounterFactory() = default;
-  virtual std::unique_ptr<Counter> read_counter() = 0;
+
+ protected:
+  virtual std::vector<uint64_t> get_counter_values() = 0;
+  virtual std::vector<std::string> get_counter_names() = 0;
+  virtual std::vector<double> get_counter_scales() = 0;
+
+ private:
+
 };
 
 // -----------------------------------------------------------------------------
 // defined in platform file:
-// static inline std::unique_ptr<CounterFactory> g_counter_factory;
+// static inline thread_local std::unique_ptr<CounterFactory> g_counter_factory;
 
 // -----------------------------------------------------------------------------
 }   // namespace gioppler
-
-// -----------------------------------------------------------------------------
-#if defined(GIOPPLER_PLATFORM_LINUX)
-#include "gioppler/linux/counter.hpp"
-#endif
 
 // -----------------------------------------------------------------------------
 #if defined(GIOPPLER_PLATFORM_LINUX)
